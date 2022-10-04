@@ -34,19 +34,20 @@ print("Episode done in %d steps. Total score: %s" % (total_steps,total_reward))
 # nn.BatchNorm2d()
 
 class DQN(nn.Module):
-    def __init__(self):                                 # CNN not needed for research internship
-        super(DQN,self).__init__()                      # super
-        self.conv1 = nn.Linear(8,32)     # input (here 8) corresponds to the size of observation space
-        self.conv2 = nn.Linear(32,32)
-        self.conv3 = nn.Linear(32,4)     # output (here 4) corresponds to the size of action space
+    def __init__(self):                         # CNN not needed for research internship -> Linear layers
+        super(DQN,self).__init__()              # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
+        self.lin1 = nn.Linear(8,32)             # input (here 8) corresponds to the size of observation space
+        self.lin2 = nn.Linear(32,32)
+        self.lin3 = nn.Linear(32,4)             # output (here 4) corresponds to the size of action space
 
+        ### For CNNs
         # stide         gives how much the filter is moved across the matrix (e.g. stride = 2 means: move the filter 2 indicies to the right of the matrix)
         # kernel_size   size of the tensor/matrix filter between convolutional layers
 
     def forward(self,state):
-        x = tfunc.relu(self.conv1(state))               # ReLU - rectified linear unit. take max(0,input) of the input
-        x = tfunc.relu(self.conv2(x))
-        return tfunc.relu(self.conv3(x))
+        x = tfunc.relu(self.lin1(state))               # ReLU - rectified linear unit. take max(0,input) of the input
+        x = tfunc.relu(self.lin2(x))
+        return tfunc.relu(self.lin3(x))
 
 class Environment():
     def __init__(self):
