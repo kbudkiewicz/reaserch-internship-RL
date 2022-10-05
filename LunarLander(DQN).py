@@ -1,24 +1,24 @@
 import random
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as tfunc
-import math
+import matplotlib
 import matplotlib.pyplot as mplt
 import numpy
+import math
 import gym
 from collections import deque, namedtuple
 import Box2D
 
 ### Assigning the device
 if torch.cuda.is_available():
-    device = "cuda"
+    torch.device = "cuda"
 else:
-    device = "cpu"
-print("Current device: %s \n" % device)
+    torch.device = "cpu"
+print("Current device: %s \n" % torch.device)
 
 ### Creating gym' Lunar Lander environment
-env = gym.make("LunarLander-v2", new_step_api=True)
+env = gym.make("LunarLander-v2")
 total_reward = 0.0
 total_steps = 0
 obs = env.reset()
@@ -33,8 +33,6 @@ while True:
     if f1 and f2 == True:
         break
 print("Episode done in %d steps. Total score: %s" % (total_steps,total_reward))
-
-# nn.BatchNorm2d()
 
 class DQN(nn.Module):
     def __init__(self):                         # CNN not needed for research internship -> Linear layers
@@ -56,37 +54,38 @@ class DQN(nn.Module):
 transit = namedtuple('Transition',('s_0','a_0','r_0','s_1'))
 
 class Replay_memory(object):
-    def __init__(self,mem_size):
-        self.memory = deque(mem_size)
-    def push(self,args):
-        self.memory.append(transit(args))
+    def __init__(self,memory_size):
+        self.memory = deque(memory_size)
+    def push(self,*args):
+        self.memory.append(transit(*args))
     def sample(self,batch_size):
         return random.sample(self.memory,batch_size)
     def __len__(self):
         return len(self.memory)
 
-class Environment():
-    def __init__(self):
-        self.steps_left = 100
-
-    def get_obs(self):
-        return env.reset()
-
-    def get_action(self):
-        return env.action_space.sample()
-
-    def is_done(self):
-        return self.steps_left == 0
-
-    def action(self, action):
-        if self.is_done():
-            return "Testing is over"
-        self.steps_left -= 1
-        return numpy.random.random()
-
+# class Environment():
+#     def __init__(self):
+#         self.steps_left = 100
+#
+#     def get_obs(self):
+#         return env.reset()
+#
+#     def get_action(self):
+#         return env.action_space.sample()
+#
+#     def is_done(self):
+#         return self.steps_left == 0
+#
+#     def action(self, action):
+#         if self.is_done():
+#             return "Testing is over"
+#         self.steps_left -= 1
+#         return numpy.random.random()
+#
 class Agent():
-    def __init__(self):
+    def __init__(self,c_obs):
         self.score = 0.0
+        self.current_obs = c_obs
 
     def step(self, env):
         current_obs = env.observation_space().sample()
