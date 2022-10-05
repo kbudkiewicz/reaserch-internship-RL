@@ -9,8 +9,6 @@ class box():
 k = box(24)
 print(k.dim)
 
-print(2//3,4//3)
-
 m = nn.Softmax(dim=1)
 input = torch.randn(2,3)
 print(input, m(input), sep="\n")

@@ -13,10 +13,16 @@
 \begin{document}
 
 %\tableofcontents
+\newpage
+\section*{Abstract}
+This document is the final report summarizing the work done by me during my 6 week research internship at the Faculty of Bioinformatics led by Prof. Dominik Grimm at TUM Campus Straubing. Under the assistance of PhD Student Jonathan Pirnay I was introduced into the basic concepts of Reinforcement Learning (RL) and Deep Q-Learning (DQL). After that I applied newly gained knowdledge onto a toy problem using \textit{Python} programming language. With the help of \textit{Gym} library, allowing the usage of preexsisting environments based of Atari 2600 games, I programmed an Deep Q-Algorithm, which achieves am avarage score of 200 in the game of \textit{Lunar Lander}. This document summarizes in short what I learned about both Reinforecment Learning and Deep Q-Learning, and describes their implementation by me in \textit{Python}, creating  an agent with ability to play \textit{Lunar Lander}.
 
 \newpage
 \section*{Introduction}
-This document is the final report summarizing the work done by me during my 6 week research internship at the Faculty of Bioinformatics led by Prof. Dominik Grimm at TUM Campus Straubing. Under the assistance of PhD Student Jonathan Pirnay I was introduced into the basic concepts of Reinforcement Learning (RL) and Deep Q-Learning (DQL). After that I applied newly gained knowdledge onto a toy problem using \textit{Python} programming language. With the help of \textit{Gym} library, allowing the usage of preexsisting environments based of Atari 2600 games, I programmed an Deep Q-Algorithm, which achieves am avarage score of 200 in the game of \textit{Lunar Lander}. This document summarizes in short what I learned about both Reinforecment Learning and Deep Q-Learning, and describes their implementation by me in \textit{Python}, creating  an agent with ability to play \textit{Lunar Lander}.
+CONTENT
+
+\section*{Methods}
+Deep Q-Algorithm was written in Python with usage of libraries \textbf{PyTorch, Matplotlib}, as well as functions \textit{deque()} and \textit{namedtuple()} from library \textbf{collections}
 \pagebreak
 
 \section{Reinforcement Learning}
@@ -47,5 +53,9 @@ Using command \textit{import gym} and env = gym.make("LunarLander-v2") the envir
 
 \subsubsection{Reward system}
 Reward and the choices of the agent are based on the action-value function \ref{eqn:bellman}
+
+\newpage
+\section*{Results and Discussion}
+RESULTS
 
 \end{document}

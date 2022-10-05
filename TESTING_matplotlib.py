@@ -8,4 +8,5 @@ import numpy as np
 x = np.linspace(0,10,20)
 y = np.random.randint(0,100,20)
 plot = mpl.plot(x,y)
+plot2 = mpl.semilogy(x,y)
 mpl.show()                          # show -> make a figure visible
