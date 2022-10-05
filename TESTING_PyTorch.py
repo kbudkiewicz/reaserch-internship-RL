@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import gym
 
+### This file is for testing/learning pytorch functions and how to apply them correctly
+
 ### Loop testing whether a condition in the environment (both legs touching the ground // True) is met. Then break the loop and return total score
 # total_reward = 0.0
 # total_steps = 0

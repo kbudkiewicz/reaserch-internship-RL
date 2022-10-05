@@ -1,4 +1,5 @@
-##### Python Classes
+### This file is for testing/learning python functions and how to apply them correctly
+
 ### Python OOP Tutorial 3 - 4.10.22
 import random
 from collections import deque, namedtuple

@@ -24,7 +24,7 @@ env.reset(seed=0)
 # print(obs,'\n', env.step(1))
 
 class DNNetwork(nn.Module):
-    def __init__(self,layer_size=32):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
+    def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
         super(DNNetwork,self).__init__()                # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
         self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
         self.lin2 = nn.Linear(layer_size,layer_size)
@@ -41,7 +41,7 @@ class DNNetwork(nn.Module):
         return tfunc.relu(self.lin3(x))
 
 ### Defining replay memory
-transit = namedtuple('Transition',('s_0','a_0','r_0','s_1'))
+transit = namedtuple('Transition',('s','a','r','s_next'))
 
 class Replay_memory(object):
     def __init__(self,memory_size):
@@ -112,25 +112,28 @@ TARGET_UPDATE = 10
 
 
 ### Training
-def run_agent(runs=2000):
+def run_agent(runs=10000, gen_life=1000):
     scores = []  # list containing scores from each episode
     scores_window = deque(maxlen=100)  # last 100 scores
     for episode in range(runs):
-        state = env.reset()
+        state = env.reset()[0]
         score = 0
-        for i in range(runs):
+        for i in range(gen_life):
             action = agent.act(state)
-            next_state, reward, done, _, _ = env.step(action)
-            agent.step(state, action, reward, next_state, done)
+            next_state, reward, terminate, trunc, _ = env.step(action)
+            agent.step(state, action, reward, next_state)
             state = next_state
             score += reward
-            if done:
+            if terminate or trunc:
                 break
         scores_window.append(score)  # save most recent score
         scores.append(score)
 
+        if episode % 100 == 0:
+            print("Running episode %s. Current averaged score: %s" % (episode,np.mean(scores_window)))
+
         if np.mean(scores_window) >= 200.0:
-            print("Training done in %s. Average score of 200 or more achieved" % episode)
+            print("Training done in %s. Average score of 200 or more achieved!" % episode)
             break
 
     return scores
