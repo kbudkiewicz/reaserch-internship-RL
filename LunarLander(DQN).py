@@ -1,43 +1,31 @@
 import random
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as tfunc
 import torch.optim as optim
 import matplotlib
 import matplotlib.pyplot as mplt
-import numpy
-import math
 import gym
 from collections import deque, namedtuple
 import Box2D
 
 ### Assigning the device
 if torch.cuda.is_available():
-    torch.device = "cuda"
+    device = "cuda"
 else:
-    torch.device = "cpu"
-print("Current device: %s \n" % torch.device)
+    device = "cpu"
+print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
 env = gym.make("LunarLander-v2")
+env.reset(seed=0)
 # obs = env.reset()
 # print(obs,'\n', env.step(1))
 
-### Loop testing whether a condition in the environment (both legs touching the ground // True) is met. Then break the loop and return total score
-# total_reward = 0.0
-# total_steps = 0
-# while True:
-#     action = env.action_space.sample()
-#     obs, reward, f1 ,f2, _ = env.step(action)
-#     total_reward += reward
-#     total_steps += 1
-#     if f1 and f2 == True:
-#         break
-# print("Episode done in %d steps. Total score: %s" % (total_steps,total_reward))
-
-class DQN(nn.Module):
+class DNNetwork(nn.Module):
     def __init__(self,layer_size=32):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
-        super(DQN,self).__init__()                      # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
+        super(DNNetwork,self).__init__()                # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
         self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
         self.lin2 = nn.Linear(layer_size,layer_size)
         self.lin3 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
@@ -69,9 +57,9 @@ class Agent():
     def __init__(self,):
         self.state_size = 8
         self.action_size = 4
-        self.qnet_local = DQN().to(torch.device)
-        self.qnet_target = DQN().to(torch.device)
-        self.optimize = optim.SGD(self.qnet_local.parameters(), lr=5*10**-4)
+        self.qnet_local = DNNetwork().to(device)
+        self.qnet_target = DNNetwork().to(device)
+        self.optimize = optim.SGD(self.qnet_local.parameters(), lr=5*10**-4)    # huber loss as alternative?
 
         self.memory = Replay_memory(100)
         self.t_step = 0
@@ -80,19 +68,29 @@ class Agent():
         self.memory.push(*args)
         self.t_step = (self.t_step + 1) % TARGET_UPDATE
         if (self.t_step % TARGET_UPDATE == 0) and (self.memory == 100):
-            self.learn( self.memory.sample(batch_size=10) )
+            self.learn( self.memory.sample(10), )
 
-    def learn(self, exp, GAMMA):
+    def act(self, state, eps=0.):       # copied from tutorial
+
+        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        self.qnet_local.eval()
+        with torch.no_grad():
+            action_values = self.qnet_local(state)
+        self.qnet_local.train()
+
+        return np.argmax(action_values.cpu().data.numpy())
+
+    def learn(self, exp, gamma=0.99):
         s, a, r, next_s = exp
         q_target_next = self.qnet_target(next_s).detach().max(1)[0].unsqueeze(1)
 
-        # Bellman equation
-        q_target = r + GAMMA * q_target_next * (1-self.t_step)
-        q_expect = self.qnet_local(s).gather(1, a)
+        # Bellman equation. Calculating q_target and and current q_value
+        q_target = r + gamma * q_target_next * (1-self.t_step)      # q_target
+        q_expect = self.qnet_local(s).gather(1, a)                  # current q
 
-        loss = tfunc.mse_loss(q_expect, q_target)
+        loss = tfunc.mse_loss(q_expect, q_target)   # optimize with mean squared loss
         self.optimize.zero_grad()
-        loss.backward()
+        loss.backward()                             # backpropagation
         self.optimize.step()
 
         self.update(self.qnet_local,self.qnet_target, TAU)
@@ -111,13 +109,37 @@ EPS_DECAY = 200
 TARGET_UPDATE = 10
 
 ##### Playground
-# env.reset()
-# n_network = DQN()
-# n_network.forward()
 
-### Input extraction
-# state = env.reset()
-# action = env.action_space.sample()
-# n_actions = env.action_space.
 
 ### Training
+def run_agent(runs=2000):
+    scores = []  # list containing scores from each episode
+    scores_window = deque(maxlen=100)  # last 100 scores
+    for episode in range(runs):
+        state = env.reset()
+        score = 0
+        for i in range(runs):
+            action = agent.act(state)
+            next_state, reward, done, _, _ = env.step(action)
+            agent.step(state, action, reward, next_state, done)
+            state = next_state
+            score += reward
+            if done:
+                break
+        scores_window.append(score)  # save most recent score
+        scores.append(score)
+
+        if np.mean(scores_window) >= 200.0:
+            print("Training done in %s. Average score of 200 or more achieved" % episode)
+            break
+
+    return scores
+
+agent = Agent()
+scores = run_agent()
+
+# plot the scores
+mplt.plot(np.linspace(1000),scores)
+mplt.show()
+
+env.close()

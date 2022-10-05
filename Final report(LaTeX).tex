@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{natbib}
+
+\title{\textbf{\huge Final report: Research internship \\ Applying Reinforcement Learning to \textit{Gym'} Lunar      Lander}\\
+  \vspace{0,25cm}
+  \textbf{Technical University of Munich \\ Campus Straubing \\ Faculty of Bioinformatics}}
+\author{Krystian Budkiewicz}
+\date{Date: xx.12.2022}
+\maketitle
+\pagebreak
+
+\begin{document}
+
+%\tableofcontents
+\newpage
+\section*{Abstract}
+This document is the final report summarizing the work done by me during my 6 week research internship at the Faculty of Bioinformatics led by Prof. Dominik Grimm at TUM Campus Straubing. Under the assistance of PhD Student Jonathan Pirnay I was introduced into the basic concepts of Reinforcement Learning (RL) and Deep Q-Learning (DQL). After that I applied newly gained knowdledge onto a toy problem using \textit{Python} programming language. With the help of \textit{Gym} library, allowing the usage of preexisting environments based of Atari 2600 games, I programmed an Deep Q-Algorithm, which achieves am avarage score of 200 in the game of \textit{Lunar Lander}. This document summarizes in short what I learned about both Reinforecment Learning and Deep Q-Learning, and describes their implementation by me in \textit{Python}, creating  an agent with ability to play \textit{Lunar Lander}.
+
+\newpage
+\section*{Introduction}
+CONTENT
+
+\section*{Methods}
+Deep Q-Algorithm was written in Python with usage of libraries \textbf{PyTorch, Matplotlib}, as well as functions \textit{deque()} and \textit{namedtuple()} from library \textbf{collections}
+\pagebreak
+
+\section{Reinforcement Learning}
+Reinforcement Learning (RL) is a subset of Machine Learning (ML) considering... \\ RL assumes that every interaction between an agent and an environment can be modeled as maximisation of some kind of reward received by an agent due to interaction with its surroundings. The definition of the reward is ambiguous and its correct decription in code, which is at the hearth of RL reasearch, is the main task of programming using RL.
+\subsection{Agent, States, Actions and Rewards}
+TXT
+\subsubsection{Section}
+TXT
+
+\subsection{Bellman equation}
+Bellman equation describes the action-state function $Q^\pi$ based on the current state $s$ and possible actions $a$ to take at that state.
+
+\begin{equation}
+\label{eqn:bellman}
+Q^\pi(s,a) = r+\gamma Q^\pi(s',\pi(s'))
+\end{equation}
+
+\section{Deep Q-Learning}
+\subsection{Neural Networks - The \textit{Deep} of Q-Learning}
+Deep Q-Learning combines the usage of action-state function $Q^\pi$ to describe the state, in which our agent resides, with neural networks processing the input data through a complicated network of layered neurons. At the end, the neural network outputs an "answer" to the current state.
+
+\section{Gym Environment: Lunar Lander}
+Until now we considered the technicalities and theory governing the algorithm of an agent. In this section we will go in depth into the implementation of our knowdledge about DQN. This part of the research internship consisted of using previously gained theoretical knowdledge of the subject and applying it using \textit{Python}. Here, using libraries \textit{PyTorch} and \textit{Gym} (as well as other smaller ones, such as e.g. Matplotlib, NumPy), I programmed an Deep Q-Algorithm that, in the end, was able to interact with a popular Atari 2600 game \textit{Lunar Lander} and achieve an average score of 200.
+
+\subsection{Importing the environoment}
+Using command \textit{import gym} and env = gym.make("LunarLander-v2") the environment is imported into the IDE'\footnotemark \space workspace.
+\footnotetext{IDE used is PyCharm Community Edition}
+
+\subsubsection{Reward system}
+Reward and the choices of the agent are based on the action-value function \ref{eqn:bellman}
+
+\newpage
+\section*{Results and Discussion}
+RESULTS
+
+\end{document}

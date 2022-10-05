@@ -85,3 +85,12 @@ print(20//4)
 print(20//6)
 print(20/7)
 print(20/6)
+
+### *args
+def sum(*args):
+    x = 0
+    for i in args:
+        x += i
+        print(x)
+
+sum(1,2,3,4)
