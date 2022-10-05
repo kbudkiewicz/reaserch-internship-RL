@@ -36,19 +36,19 @@ class DNNetwork(nn.Module):
 
     def forward(self,state):
         # x = state.to(torch.device)
-        x = tfunc.relu(self.lin1(state))               # ReLU - rectified linear unit. take max(0,input) of the input
-        x = tfunc.relu(self.lin2(x))
-        return tfunc.relu(self.lin3(x))
+        x = tfunc.relu( self.lin1(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
+        x = tfunc.relu( self.lin2(x) )
+        return tfunc.relu( self.lin3(x) )
 
 ### Defining replay memory
-transit = namedtuple('Transition',('s','a','r','s_next'))
+transit = namedtuple( 'Transition',('s','a','r','s_next') )
 
 class Replay_memory(object):
     def __init__(self,memory_size, batch_size):
         self.memory = deque(maxlen=memory_size)
         self.batch_size = batch_size
     def push(self,*args):
-        self.memory.append(transit(*args))
+        self.memory.append( transit(*args) )
     def sample(self):
         return random.sample(self.memory,self.batch_size)
     def __len__(self):
@@ -61,7 +61,6 @@ class Agent():
         self.qnet_local = DNNetwork().to(device)
         self.qnet_target = DNNetwork().to(device)
         self.optimize = optim.SGD(self.qnet_local.parameters(), lr=5*10**-4)    # huber loss as alternative?
-
         self.memory = Replay_memory(100,10)
         self.t_step = 0
 
@@ -69,16 +68,14 @@ class Agent():
         self.memory.push(*args)
         self.t_step = (self.t_step + 1) % TARGET_UPDATE
         if (self.t_step % TARGET_UPDATE == 0) and (self.memory == 100):
-            self.learn( self.memory.sample(), )
+            self.learn( self.memory.sample() )
 
     def act(self, state, eps=0.):       # copied from tutorial
-
         state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         self.qnet_local.eval()
         with torch.no_grad():
             action_values = self.qnet_local(state)
         self.qnet_local.train()
-
         return np.argmax(action_values.cpu().data.numpy())
 
     def learn(self, exp, gamma=0.99):
@@ -98,7 +95,7 @@ class Agent():
 
     def update(self, local, target, tau):
         for target, local in zip(target.parameters(), local.parameters()):
-            target.data.copy_(tau*local.data + (1-tau)*target.data)
+            target.data.copy_( tau*local.data + (1-tau)*target.data )
 
 ### Training parameters
 BATCH_SIZE = 128
