@@ -1,5 +1,8 @@
 ##### Python Classes
 ### Python OOP Tutorial 3 - 4.10.22
+import random
+from collections import deque, namedtuple
+
 class Chemical:
     danger_lvl = 0
 
@@ -50,5 +53,27 @@ class Chemical:
 # setter    - @methodname.setter. define setter method
 # deleter   - @methodname.deleter. define deleter method. use as $del instance.methodname
 
-##### deque()
-###
+##### collections datatype. Are extenstions and more specialized versions of general containers (such as list, tuple). imported from 'collections'
+### deque() - list of a fixed length with overridable arguments.
+# If appending new arg would increase the size over the limit ( len(deque)>deque.maxlength ) then append new arg and delete the last one ( del(deque[0]) )
+
+print('\nTesiting deque:')
+card_deck = deque(maxlen=4)
+for i in range(16):
+    card_deck.append(i)
+    print(card_deck)
+
+### namedtuple() - tuple which can be accessed by given field names instead of indicies
+# define new object/tuple: namedtuple( objectname, (attribute1, attribute2, ...) )
+# assign newly created object/tuple to a var. This var is now of type objectname with attributes listed in the tuple
+
+print('\nTesting namedtuple():')
+animal = namedtuple('Animal',('name','size','species') )
+lion = animal('Latin name','Big','Average lion')
+print(lion)
+
+point_3d = namedtuple('Point',('x','y','z'))
+for i in range(6):
+    p = point_3d(i,2*i,3*i)
+    print(p, random.sample(p,2))    # from library random use sample method
+                                    # sample(obj, size) - from obj return a list ( len=size ) with random attributes of obj

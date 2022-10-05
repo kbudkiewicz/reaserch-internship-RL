@@ -1,3 +1,5 @@
+import random
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as tfunc
@@ -5,6 +7,7 @@ import math
 import matplotlib.pyplot as mplt
 import numpy
 import gym
+from collections import deque, namedtuple
 import Box2D
 
 ### Assigning the device
@@ -48,6 +51,19 @@ class DQN(nn.Module):
         x = tfunc.relu(self.lin1(state))               # ReLU - rectified linear unit. take max(0,input) of the input
         x = tfunc.relu(self.lin2(x))
         return tfunc.relu(self.lin3(x))
+
+### Defining replay memory
+transit = namedtuple('Transition',('s_0','a_0','r_0','s_1'))
+
+class Replay_memory(object):
+    def __init__(self,mem_size):
+        self.memory = deque(mem_size)
+    def push(self,args):
+        self.memory.append(transit(args))
+    def sample(self,batch_size):
+        return random.sample(self.memory,batch_size)
+    def __len__(self):
+        return len(self.memory)
 
 class Environment():
     def __init__(self):
