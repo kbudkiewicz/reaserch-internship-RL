@@ -1,4 +1,3 @@
-% Draft of the final report in LaTeX
 \documentclass{article}
 \usepackage{amsmath}
 \usepackage{natbib}
@@ -58,5 +57,20 @@ Reward and the choices of the agent are based on the action-value function \ref{
 \newpage
 \section*{Results and Discussion}
 RESULTS
+
+\begin{table}[h]
+\caption{Iterations needed by DQN-Algorithm with specific layer sizes}
+\centering
+\begin{tabular}{cc}
+  \hline
+  \textbf{Size of the layer} & \textbf{Iterations needed} \\
+  \hline
+  16 & 2 \\
+  32 & 6 \\
+  64 & 128 \\
+  \hline
+\end{tabular}
+\label{tab:table1}
+\end{table}
 
 \end{document}
