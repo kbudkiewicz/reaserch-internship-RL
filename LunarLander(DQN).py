@@ -36,11 +36,11 @@ env = gym.make("LunarLander-v2")
 # print("Episode done in %d steps. Total score: %s" % (total_steps,total_reward))
 
 class DQN(nn.Module):
-    def __init__(self,layer_size=32):                         # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
-        super(DQN,self).__init__()                   # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
-        self.lin1 = nn.Linear(8,layer_size)          # input (here 8) corresponds to the size of observation space
+    def __init__(self,layer_size=32):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
+        super(DQN,self).__init__()                      # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
+        self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
         self.lin2 = nn.Linear(layer_size,layer_size)
-        self.lin3 = nn.Linear(layer_size,4)          # output (here 4) corresponds to the size of action space
+        self.lin3 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
 
         ### For CNNs
         # stide         gives how much the filter is moved across the matrix (e.g. stride = 2 means: move the filter 2 indicies to the right of the matrix)
@@ -78,6 +78,7 @@ class Agent():
 
     def step(self, *args):
         self.memory.push(*args)
+        self.t_step = (self.t_step + 1) % TARGET_UPDATE
         if (self.t_step % TARGET_UPDATE == 0) and (self.memory == 100):
             self.learn( self.memory.sample(batch_size=10) )
 
@@ -85,7 +86,7 @@ class Agent():
         s, a, r, next_s = exp
         q_target_next = self.qnet_target(next_s).detach().max(1)[0].unsqueeze(1)
 
-        # Bellman equaiton
+        # Bellman equation
         q_target = r + GAMMA * q_target_next * (1-self.t_step)
         q_expect = self.qnet_local(s).gather(1, a)
 
@@ -110,10 +111,9 @@ EPS_DECAY = 200
 TARGET_UPDATE = 10
 
 ##### Playground
-env.reset()
-n_network = DQN()
-n_network.forward()
-
+# env.reset()
+# n_network = DQN()
+# n_network.forward()
 
 ### Input extraction
 # state = env.reset()

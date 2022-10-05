@@ -77,3 +77,11 @@ for i in range(6):
     p = point_3d(i,2*i,3*i)
     print(p, random.sample(p,2))    # from library random use sample method
                                     # sample(obj, size) - from obj return a list ( len=size ) with random attributes of obj
+
+### Math
+print(20%4)     # x%y returns the 'rest' of division
+print(20%7)     # x//y returns the max amount of times that y fits in x
+print(20//4)
+print(20//6)
+print(20/7)
+print(20/6)
