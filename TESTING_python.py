@@ -55,7 +55,7 @@ class Chemical:
 # deleter   - @methodname.deleter. define deleter method. use as $del instance.methodname
 
 ##### collections datatype. Are extenstions and more specialized versions of general containers (such as list, tuple). imported from 'collections'
-### deque() - list of a fixed length with overridable arguments.
+### deque() - list of a fixed length with overridable arguments. Can be overwritten with new data like RAM
 # If appending new arg would increase the size over the limit ( len(deque)>deque.maxlength ) then append new arg and delete the last one ( del(deque[0]) )
 
 print('\nTesiting deque:')

@@ -44,12 +44,13 @@ class DNNetwork(nn.Module):
 transit = namedtuple('Transition',('s','a','r','s_next'))
 
 class Replay_memory(object):
-    def __init__(self,memory_size):
+    def __init__(self,memory_size, batch_size):
         self.memory = deque(maxlen=memory_size)
+        self.batch_size = batch_size
     def push(self,*args):
         self.memory.append(transit(*args))
-    def sample(self,batch_size):
-        return random.sample(self.memory,batch_size)
+    def sample(self):
+        return random.sample(self.memory,self.batch_size)
     def __len__(self):
         return len(self.memory)
 
@@ -61,14 +62,14 @@ class Agent():
         self.qnet_target = DNNetwork().to(device)
         self.optimize = optim.SGD(self.qnet_local.parameters(), lr=5*10**-4)    # huber loss as alternative?
 
-        self.memory = Replay_memory(100)
+        self.memory = Replay_memory(100,10)
         self.t_step = 0
 
     def step(self, *args):
         self.memory.push(*args)
         self.t_step = (self.t_step + 1) % TARGET_UPDATE
         if (self.t_step % TARGET_UPDATE == 0) and (self.memory == 100):
-            self.learn( self.memory.sample(10), )
+            self.learn( self.memory.sample(), )
 
     def act(self, state, eps=0.):       # copied from tutorial
 
@@ -106,31 +107,31 @@ TAU = 1*10**-3
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
-TARGET_UPDATE = 10
+TARGET_UPDATE = 5
 
 ##### Playground
 
 
 ### Training
-def run_agent(runs=10000, gen_life=1000):
+def run_agent(runs=2000, gen_life=100):
     scores = []  # list containing scores from each episode
-    scores_window = deque(maxlen=100)  # last 100 scores
+    scores_window = deque(maxlen=100)   # last 100 scores
     for episode in range(runs):
-        state = env.reset()[0]
+        state = env.reset()[0]    # if specific seed used, no improvement of the agent
         score = 0
         for i in range(gen_life):
             action = agent.act(state)
-            next_state, reward, terminate, trunc, _ = env.step(action)
+            next_state, reward, _, trunc, done = env.step(action)
             agent.step(state, action, reward, next_state)
             state = next_state
             score += reward
-            if terminate or trunc:
+            if trunc or done:
                 break
-        scores_window.append(score)  # save most recent score
+        scores_window.append(score)  # save most recent 100 scores
         scores.append(score)
 
         if episode % 100 == 0:
-            print("Running episode %s. Current averaged score: %s" % (episode,np.mean(scores_window)))
+            print("Running episode %s. Current averaged score: %.2f" % (episode,np.mean(scores_window)))
 
         if np.mean(scores_window) >= 200.0:
             print("Training done in %s. Average score of 200 or more achieved!" % episode)
@@ -142,7 +143,7 @@ agent = Agent()
 scores = run_agent()
 
 # plot the scores
-mplt.plot(np.linspace(1000),scores)
+mplt.plot(np.linspace(0,2000),scores)
 mplt.show()
 
 env.close()

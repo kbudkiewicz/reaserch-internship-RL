@@ -28,8 +28,9 @@ import gym
 # print(input, m(input), sep="\n")
 
 ### Environment of the Lunar Lander
-# env = gym.make("LunarLander-v2", new_step_api=True)
-# obs = env.reset()
+env = gym.make("LunarLander-v2")
+obs = env.reset(seed=0)
+print(env.step(0),"\nLength: ", len(env.step(0)))
 # print(obs, "\n")
 # print(env.action_space)
 # action = env.action_space.sample()
