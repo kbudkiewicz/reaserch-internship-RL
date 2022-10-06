@@ -66,7 +66,7 @@ class Agent():
         self.batch_size = self.memory.batch_size
         self.t_step = 0
 
-    def step(self, *args):
+    def evaluate(self, *args):
         self.memory.remember(*args)     # input: s, a, r, next_s
         self.t_step = (self.t_step + 1) % TARGET_UPDATE
         if (self.t_step % TARGET_UPDATE == 0) and ( len(self.memory) >= self.batch_size):
@@ -85,15 +85,22 @@ class Agent():
         return np.argmax( action_values.cpu().data.numpy() )
 
     def learn(self, exp, gamma=0.99):
-        s_next_tensor = torch.tensor([1,2,3,4,5,6,7,8,9,10])
-        s_next_tensor = s_next_tensor.unsqueeze(1)
+        s_tens = torch.rand(10,8)
+        a_tens = torch.rand(10,1).flatten()
+        r_tens = torch.rand(10,1).flatten()
+        s_next_tens = torch.rand(10, 8)
+
+        # unpack memories into a tensor/vector with states, actions, or rewards
         for i in range( len(exp) ):
-            s_next_tensor[i,0] = np.array(exp[3])       # attach s_next from each memory
-        q_target_next = self.qnet_target(s_next_tensor).detach().max(1)[0].unsqueeze(1)
+            s_tens[i] = torch.tensor( exp[i].s )
+            a_tens[i] = torch.tensor( exp[i].a )
+            r_tens[i] = torch.tensor( exp[i].r )
+            s_next_tens[i] = torch.tensor( exp[i].next_s )        # attach s_next from each memory
+        q_target_next = self.qnet_target().forward(s_next_tens)
 
         # Bellman equation. Calculating q_target and and current q_value
-        q_target = r + gamma * q_target_next * (1-self.t_step)      # q_target
-        q_expect = self.qnet_local(s).gather(1, a)                  # current q
+        q_target = r_tens + gamma * q_target_next * (1-self.t_step)      # q_target
+        q_expect = self.qnet_local().forward(s_tens)                 # current q
 
         loss = tfunc.mse_loss(q_expect, q_target)   # optimize with mean squared loss
         self.optimize.zero_grad()
@@ -119,7 +126,7 @@ def run_agent(episodes=2000, play_time=5000):
         for time in range(play_time):   # define "playtime" of an agent in environment
             action = agent.act(state)   # act on primary state, get best action from NN
             next_state, reward, terminated, _, done = env.step(action)  # environment takes one step according to chosen the action
-            agent.step(state, action, reward, next_state)               # agent
+            agent.evaluate(state, action, reward, next_state)
             state = next_state
             score += reward
             if terminated or done:
@@ -128,7 +135,7 @@ def run_agent(episodes=2000, play_time=5000):
         scores.append(score)
 
         if episode % 100 == 0:
-            print("Running episode %s. Current averaged score: %.2f" % (episode,np.mean(scores_window)))
+            print("Running episode %s. Current averaged score: %.2f" % (episode,np.mean(scores_window)) )
 
         if np.mean(scores_window) >= 200.0:
             print("Training done in %s. Average score of 200 or more achieved!" % episode)

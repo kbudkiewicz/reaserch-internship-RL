@@ -3,7 +3,6 @@
 ### Python OOP Tutorial 3 - 4.10.22
 import random
 from collections import deque, namedtuple
-
 import gym
 import torch
 import numpy as np
@@ -74,27 +73,10 @@ class Chemical:
 # define new object/tuple: namedtuple( objectname, (attribute1, attribute2, ...) )
 # assign newly created object/tuple to a var. This var is now of type objectname with attributes listed in the tuple
 
-memory = namedtuple('Memory',('s','a','r','s_next'))
-brain = []
-for i in range(10):
-    env.reset()
-    obs, r, _, _, _ = env.step(1)
-    brain.append(memory(obs,r))
-print('Brain content:')
-for i in brain:
-    print(i)
-
-T = torch.tensor([1,2,3,4,5,6,7,8,9,10])
-T = T.unsqueeze(0)
-print(brain.__class__)
-for i in range( len(brain) ):
-    T[i, 0] = brain[i][1]
-print('\nNew T:\n', T)
-
-print('\nTesting namedtuple():')
-animal = namedtuple('Animal',('name','size','species') )
-lion = animal('Latin name','Big','Average lion')
-print(lion)
+# print('\nTesting namedtuple():')
+# animal = namedtuple('Animal',('name','size','species') )
+# lion = animal('Latin name','Big','Average lion')
+# print(lion)
 
 point_3d = namedtuple('Point',('x','y','z'))
 for i in range(6):

@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as tfunc
 import gym
+env = gym.make("LunarLander-v2")
+from collections import deque, namedtuple
 
 ### This file is for testing/learning pytorch and gym functions and how to apply them correctly
 
@@ -67,6 +69,27 @@ import gym
 # # print( net(T2) )
 # print('\nReLU applied to NN:')
 # print( tfunc.relu( net(T) ) )
+
+### putting values into a tensor
+memory = namedtuple('Memory',('s','a','r','s_next'))
+brain = []
+for i in range(10):
+    state = env.reset()
+    obs, r, _, _, _ = env.step(1)
+    brain.append(memory(state, 1, r, obs))
+print('Brain content:')
+for i in brain:
+    print(i)
+
+T = torch.randn(10,8)
+net = nn.Linear(8,32)
+net2 = nn.Linear(32,4)
+print(net2(net(T)))
+
+print(brain.__class__)
+for i in range( len(brain) ):
+    T[i] = torch.tensor( brain[i].s_next )
+print('\nNew T:\n', T)
 
 ##### Gym
 # env = gym.make("LunarLander-v2", render_mode="human")
