@@ -84,9 +84,9 @@ class Agent():
         # return the best action
         return np.argmax( action_values.cpu().data.numpy() )
 
-    def learn(self, exp, gamma=0.99):
+    def learn(self, exp, gamma=0.9):
         s_tens = torch.rand(10,8)
-        a_tens = torch.rand(10).unsqueeze(1).long()
+        a_tens = torch.rand(10,4).long()
         r_tens = torch.rand(10).unsqueeze(1)
         s_next_tens = torch.rand(10, 8)
 
@@ -117,7 +117,7 @@ class Agent():
 
 
 ### Training
-def run_agent(episodes=2000, play_time=5000):
+def run_agent(episodes=2000, play_time=2500):
     scores = []  # list containing scores from each episode
     scores_window = deque(maxlen=100)   # last 100 scores
     for episode in range(episodes):
@@ -146,7 +146,7 @@ def run_agent(episodes=2000, play_time=5000):
 ### Training parameters
 BATCH_SIZE = 128
 GAMMA = 0.99
-TAU = 1*10**-3
+TAU = 1e-3
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
@@ -156,7 +156,10 @@ agent = Agent()
 scores = run_agent()
 
 # plot the scores
-mplt.plot(np.linspace(0,2000),scores)
-mplt.show()
+# fig = mplt.figure()
+# mplt.plot( len(scores), scores)
+# mplt.xlabel('Episode #')
+# mplt.ylabel('Score')
+# mplt.show()
 
 env.close()
