@@ -86,8 +86,8 @@ class Agent():
 
     def learn(self, exp, gamma=0.99):
         s_tens = torch.rand(10,8)
-        a_tens = torch.rand(10,1).flatten()
-        r_tens = torch.rand(10,1).flatten()
+        a_tens = torch.rand(10).unsqueeze(1).long()
+        r_tens = torch.rand(10).unsqueeze(1)
         s_next_tens = torch.rand(10, 8)
 
         # unpack memories into a tensor/vector with states, actions, or rewards
@@ -96,11 +96,11 @@ class Agent():
             a_tens[i] = torch.tensor( exp[i].a )
             r_tens[i] = torch.tensor( exp[i].r )
             s_next_tens[i] = torch.tensor( exp[i].next_s )        # attach s_next from each memory
-        q_target_next = self.qnet_target().forward(s_next_tens)
+        q_target_next = self.qnet_target(s_next_tens).detach().numpy()
 
         # Bellman equation. Calculating q_target and and current q_value
         q_target = r_tens + gamma * q_target_next * (1-self.t_step)      # q_target
-        q_expect = self.qnet_local().forward(s_tens)                 # current q
+        q_expect = self.qnet_local(s_tens).gather(1, a_tens)                 # current q
 
         loss = tfunc.mse_loss(q_expect, q_target)   # optimize with mean squared loss
         self.optimize.zero_grad()
