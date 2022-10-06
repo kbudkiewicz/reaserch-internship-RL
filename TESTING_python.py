@@ -4,6 +4,12 @@
 import random
 from collections import deque, namedtuple
 
+import gym
+import torch
+import numpy as np
+
+env = gym.make('LunarLander-v2')
+
 class Chemical:
     danger_lvl = 0
 
@@ -58,15 +64,32 @@ class Chemical:
 ### deque() - list of a fixed length with overridable arguments. Can be overwritten with new data like RAM
 # If appending new arg would increase the size over the limit ( len(deque)>deque.maxlength ) then append new arg and delete the last one ( del(deque[0]) )
 
-print('\nTesiting deque:')
-card_deck = deque(maxlen=4)
-for i in range(16):
-    card_deck.append(i)
-    print(card_deck)
+# print('\nTesiting deque:')
+# card_deck = deque(maxlen=4)
+# for i in range(16):
+#     card_deck.append(i)
+#     print(card_deck)
 
 ### namedtuple() - tuple which can be accessed by given field names instead of indicies
 # define new object/tuple: namedtuple( objectname, (attribute1, attribute2, ...) )
 # assign newly created object/tuple to a var. This var is now of type objectname with attributes listed in the tuple
+
+memory = namedtuple('Memory',('s','a','r','s_next'))
+brain = []
+for i in range(10):
+    env.reset()
+    obs, r, _, _, _ = env.step(1)
+    brain.append(memory(obs,r))
+print('Brain content:')
+for i in brain:
+    print(i)
+
+T = torch.tensor([1,2,3,4,5,6,7,8,9,10])
+T = T.unsqueeze(0)
+print(brain.__class__)
+for i in range( len(brain) ):
+    T[i, 0] = brain[i][1]
+print('\nNew T:\n', T)
 
 print('\nTesting namedtuple():')
 animal = namedtuple('Animal',('name','size','species') )

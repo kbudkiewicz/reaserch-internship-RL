@@ -40,7 +40,7 @@ class DNNetwork(nn.Module):
         return self.lin3(x)
 
 ### Defining replay memory
-memory = namedtuple( 'Memory',('s','a','r','s_next') )
+memory = namedtuple( 'Memory',('s','a','r','next_s') )
 
 class Replay_memory(object):
     def __init__(self,memory_size, batch_size):
@@ -67,23 +67,29 @@ class Agent():
         self.t_step = 0
 
     def step(self, *args):
-        self.memory.remember(*args)
+        self.memory.remember(*args)     # input: s, a, r, next_s
         self.t_step = (self.t_step + 1) % TARGET_UPDATE
         if (self.t_step % TARGET_UPDATE == 0) and ( len(self.memory) >= self.batch_size):
             self.learn( self.memory.get_sample() )
 
-    def act(self, state, eps=0.):       # parameter eps for eps-greedy action selection
+    def act(self, input_state, eps=0.):         # parameter eps for eps-greedy action selection
+        ### return the best action based on current state and NN
         # convert the array from env into torch.tensor in float form
-        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-        self.qnet_local.eval()
+        state = torch.from_numpy(input_state).float()
+        self.qnet_local.eval()                  # set NN in evaluation mode
+        # forward current state through the network
         with torch.no_grad():
-            action_values = self.qnet_local(state)
-        self.qnet_local.train()
-        return np.argmax(action_values.cpu().data.numpy())
+            action_values = self.qnet_local.forward(state)
+        self.qnet_local.train()                 # set NN in training mode
+        # return the best action
+        return np.argmax( action_values.cpu().data.numpy() )
 
     def learn(self, exp, gamma=0.99):
-        s, a, r, next_s = exp           # 10 memories to unpack
-        q_target_next = self.qnet_target(next_s).detach().max(1)[0].unsqueeze(1)
+        s_next_tensor = torch.tensor([1,2,3,4,5,6,7,8,9,10])
+        s_next_tensor = s_next_tensor.unsqueeze(1)
+        for i in range( len(exp) ):
+            s_next_tensor[i,0] = np.array(exp[3])       # attach s_next from each memory
+        q_target_next = self.qnet_target(s_next_tensor).detach().max(1)[0].unsqueeze(1)
 
         # Bellman equation. Calculating q_target and and current q_value
         q_target = r + gamma * q_target_next * (1-self.t_step)      # q_target
@@ -99,15 +105,6 @@ class Agent():
     def update(self, local, target, tau):
         for target, local in zip(target.parameters(), local.parameters()):
             target.data.copy_( tau*local.data + (1-tau)*target.data )
-
-### Training parameters
-BATCH_SIZE = 128
-GAMMA = 0.99
-TAU = 1*10**-3
-EPS_START = 0.9
-EPS_END = 0.05
-EPS_DECAY = 200
-TARGET_UPDATE = 5
 
 ##### Playground
 
@@ -138,6 +135,15 @@ def run_agent(episodes=2000, play_time=5000):
             break
 
     return scores
+
+### Training parameters
+BATCH_SIZE = 128
+GAMMA = 0.99
+TAU = 1*10**-3
+EPS_START = 0.9
+EPS_END = 0.05
+EPS_DECAY = 200
+TARGET_UPDATE = 5
 
 agent = Agent()
 scores = run_agent()
