@@ -100,9 +100,9 @@ class Agent():
 
         # Bellman equation. Calculating q_target and and current q_value
         q_target = r_tens + gamma * q_target_next * (1-self.t_step)      # q_target
-        q_expect = self.qnet_local(s_tens).gather(1, a_tens)                 # current q
+        q_expected = self.qnet_local(s_tens).gather(1, a_tens)                 # current q
 
-        loss = tfunc.mse_loss(q_expect, q_target)   # optimize with mean squared loss
+        loss = tfunc.mse_loss(q_expected, q_target)   # optimize with mean squared loss
         self.optimize.zero_grad()
         loss.backward()                             # backpropagation
         self.optimize.step()
