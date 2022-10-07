@@ -4,7 +4,6 @@
 import random
 from collections import deque, namedtuple
 import gym
-import torch
 import numpy as np
 
 env = gym.make('LunarLander-v2')
@@ -85,18 +84,21 @@ for i in range(6):
                                     # sample(obj, size) - from obj return a list ( len=size ) with random attributes of obj
 
 ### Math
-print(20%4)     # x%y returns the 'rest' of division
-print(20%7)     # x//y returns the max amount of times that y fits in x
-print(20//4)
-print(20//6)
-print(20/7)
-print(20/6)
+# print(20%4)     # x%y returns the 'rest' of division
+# print(20%7)     # x//y returns the max amount of times that y fits in x
+# print(20//4)
+# print(20//6)
+# print(20/7)
+# print(20/6)
 
 ### *args
-def sum(*args):
-    x = 0
-    for i in args:
-        x += i
-        print(x)
+# def sum(*args):
+#     x = 0
+#     for i in args:
+#         x += i
+#         print(x)
+#
+# sum(1,2,3,4)
 
-sum(1,2,3,4)
+# for i in range(10):
+#     print(random.randint(0,3))

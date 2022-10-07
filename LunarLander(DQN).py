@@ -77,22 +77,21 @@ class Agent():
         if (self.t_step % TARGET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size):
             self.learn( self.memory.get_sample() )
 
-    def act(self, input_state):         # parameter self.eps for eps-greedy action selection
+    def get_action(self, observation):
         ### return the best action based on current state and NN
-        # convert the array from env into torch.tensor in float form
-        state = torch.from_numpy(input_state).float()
-        self.qnet_local.eval()                  # set NN in evaluation mode
-        # forward current state through the network
-        with torch.no_grad():
-            action_values = self.qnet_local.forward(state)
-        self.qnet_local.train()                 # set NN in training mode
-        # return the best action (eps-greedy only)
-        return np.argmax( action_values.cpu().data.numpy() )
+        state = torch.from_numpy(observation).float()           # convert the array from env into torch.tensor in float form
+        action_values = self.qnet_local.forward(state)          # forward current state through the network
+
+        ## eps-greedy action selection
+        if random.random() > self.eps:
+            return np.argmax( action_values.detach().numpy() )
+        else:
+            return random.randint(0,3)      # take random action out of 4
 
     def learn(self, exp):
         s_tens = torch.tensor( np.zeros((10,8)) ).float()
         a_tens = torch.tensor( [1,2,3,4,5,6,7,8,9,10] ).unsqueeze(1).long()
-        r_tens = torch.tensor( [1,2,3,4,5,6,7,8,9,10] ).unsqueeze(1)
+        r_tens = torch.tensor( [1,2,3,4,5,6,7,8,9,10] )
         s_next_tens = torch.tensor( np.zeros((10,8)) ).float()
 
         # unpack memories into a tensor/vector with states, actions, or rewards
@@ -100,7 +99,7 @@ class Agent():
             s_tens[i] = torch.tensor( exp[i].s )
             a_tens[i] = torch.tensor( exp[i].a )
             r_tens[i] = torch.tensor( exp[i].r )
-            s_next_tens[i] = torch.tensor( exp[i].next_s )        # attach s_next from each memory
+            s_next_tens[i] = torch.tensor( exp[i].next_s )                      # attach s_next from each memory
 
         # Bellman equation. Calculating q_target and and current q_value
         q_target_next = self.qnet_target(s_next_tens).detach()                  # get q_values of next states
@@ -108,10 +107,9 @@ class Agent():
         q_expected = self.qnet_local(s_tens).gather(1, a_tens)                  # current q
 
         self.optimize.zero_grad()
-        loss = F.mse_loss(q_expected, q_target)         # calculate mean squared loss between expected and target q_values
-        loss.backward()                                 # backpropagation and recalculating the strength of neuron connections in NN
+        loss = F.mse_loss(q_expected, q_target.unsqueeze(1))        # calculate mean squared loss between expected and target q_values
+        loss.backward()                                             # backpropagation and recalculating the strength of neuron connections in NN
         self.optimize.step()
-
         self.update(self.qnet_local,self.qnet_target)
 
     def update(self, local, target):
@@ -126,19 +124,20 @@ def run_agent(episodes=2000, play_time=1000):
            % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA)  + 35*'-' )
 
     scores = []                             # list containing scores from each episode
-    last_scores = deque(maxlen=100)         # last 100 scores
+    last_scores = deque(maxlen=100)
     for episode in range(episodes):
-        state = env.reset()[0]              # if specific seed used, no improvement of the agent
+        state = env.reset()[0]
         score = 0
         for time in range(play_time):       # define "playtime" of an agent in environment
-            action = agent.act(state)                                       # act on primary state, get best action from NN
-            next_state, reward, terminated, _, done = env.step(action)      # environment takes one step according to chosen the action
+            action = agent.get_action(state)                                    # act on primary state, get best action from NN
+            next_state, reward, terminated, truncated, _ = env.step(action)     # environment takes one step according to chosen the action
             agent.evaluate(state, action, reward, next_state)
             state = next_state
             score += reward
-            if terminated or done:
+            if terminated or truncated:
                 break
-        last_scores.append(score)  # save most recent 100 scores
+        agent.eps = max(EPS_END,EPS_DEC*agent.eps)  # update eps
+        last_scores.append(score)                   # save most recent 100 scores
         scores.append(score)
 
         if episode % 50 == 0:
@@ -158,7 +157,9 @@ LAYER_SIZE = 64
 MEMORY_SIZE = 100
 BATCH_SIZE = 10
 LR = 1e-4
-EPS = 0
+EPS = 1
+EPS_END = 1e-2
+EPS_DEC = 0.995
 
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 scores = run_agent()
