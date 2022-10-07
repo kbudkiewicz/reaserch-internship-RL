@@ -71,25 +71,35 @@ from collections import deque, namedtuple
 # print( tfunc.relu( net(T) ) )
 
 ### putting values into a tensor
-memory = namedtuple('Memory',('s','a','r','s_next'))
-brain = []
-for i in range(10):
-    state = env.reset()
-    obs, r, _, _, _ = env.step(1)
-    brain.append(memory(state, 1, r, obs))
-print('Brain content:')
-for i in brain:
-    print(i)
+# memory = namedtuple('Memory',('s','a','r','s_next'))
+# brain = []
+# for i in range(10):
+#     state = env.reset()
+#     obs, r, _, _, _ = env.step(1)
+#     brain.append(memory(state, 1, r, obs))
+# print('Brain content:')
+# for i in brain:
+#     print(i)
+#
+# T = torch.randn(10,8)
+# net = nn.Linear(8,32)
+# net2 = nn.Linear(32,4)
+# print(net2(net(T)))
 
-T = torch.randn(10,8)
-net = nn.Linear(8,32)
-net2 = nn.Linear(32,4)
-print(net2(net(T)))
+# print(brain.__class__)
+# for i in range( len(brain) ):
+#     T[i] = torch.tensor( brain[i].s_next )
+# print('\nNew T:\n', T)
 
-print(brain.__class__)
-for i in range( len(brain) ):
-    T[i] = torch.tensor( brain[i].s_next )
-print('\nNew T:\n', T)
+net1 = nn.Linear(4,32)
+net2 = nn.Linear(32,32)
+net3 = nn.Linear(32,6)
+T = torch.rand(5,4)
+a = torch.randn(5).unsqueeze(1).long().abs()
+print('T: ',T)
+TT = net3(net2(net1(T)))
+print( 'T -> NN -> T: \n', TT)
+print( TT.gather(1, a) )
 
 ##### Gym
 # env = gym.make("LunarLander-v2", render_mode="human")
