@@ -27,6 +27,7 @@ class DNNetwork(nn.Module):
         self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
         self.lin2 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
         self.lin3 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
+        self.to(device)
 
         ### For CNNs
         # stide         gives how much the filter is moved across the matrix (e.g. stride = 2 means: move the filter 2 indicies to the right of the matrix)
@@ -89,10 +90,10 @@ class Agent():
         return np.argmax( action_values.cpu().data.numpy() )
 
     def learn(self, exp):
-        s_tens = torch.randn(10,8)
-        a_tens = torch.randn(10).unsqueeze(1).long()
-        r_tens = torch.randn(10).unsqueeze(1)
-        s_next_tens = torch.rand(10, 8)
+        s_tens = torch.tensor( np.zeros((10,8)) ).float()
+        a_tens = torch.tensor( [1,2,3,4,5,6,7,8,9,10] ).unsqueeze(1).long()
+        r_tens = torch.tensor( [1,2,3,4,5,6,7,8,9,10] ).unsqueeze(1)
+        s_next_tens = torch.tensor( np.zeros((10,8)) ).float()
 
         # unpack memories into a tensor/vector with states, actions, or rewards
         for i in range( len(exp) ):
