@@ -2,7 +2,7 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as tfunc
+import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib
 import matplotlib.pyplot as mplt
@@ -19,8 +19,6 @@ print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
 env = gym.make("LunarLander-v2")
-# obs = env.reset()
-# print(obs,'\n', env.step(1))
 
 class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
@@ -36,12 +34,12 @@ class DNNetwork(nn.Module):
 
     def forward(self,state):
         # x = state.to(torch.device)
-        x = tfunc.relu( self.lin1(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
-        x = tfunc.relu( self.lin2(x) )
+        x = F.relu(self.lin1(state))               # ReLU - rectified linear unit. take max(0,input) of the input
+        x = F.relu(self.lin2(x))
         return self.lin3(x)
 
 ### Defining replay memory
-memory = namedtuple( 'Memory',('s','a','r','next_s') )
+memory = namedtuple( 'Memory', ('s','a','r','next_s') )
 
 class Replay_memory(object):
     def __init__(self,memory_size, batch_size):
@@ -60,14 +58,14 @@ class Agent():
     def __init__(self, memory_size, batch_size, tau, gamma,  learning_rate):
         self.state_size = 8
         self.action_size = 4
-        self.gamma = gamma
+        self.batch_size = batch_size
         self.tau = tau
+        self.gamma = gamma
         self.lr = learning_rate
         self.qnet_local = DNNetwork().to(device)
         self.qnet_target = DNNetwork().to(device)
         self.optimize = optim.Adam(self.qnet_local.parameters(), self.lr)    # huber loss as alternative?
         self.memory = Replay_memory(memory_size,batch_size)
-        self.batch_size = self.memory.batch_size
         self.t_step = 0
 
     def evaluate(self, *args):
@@ -106,7 +104,7 @@ class Agent():
         q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]     # q_target
         q_expected = self.qnet_local(s_tens).gather(1, a_tens)                  # current q
 
-        loss = tfunc.mse_loss(q_expected, q_target)     # calculate mean squared loss between expected and target q_values
+        loss = F.mse_loss(q_expected, q_target)     # calculate mean squared loss between expected and target q_values
         self.optimize.zero_grad()
         loss.backward()                                 # backpropagation and recalculating the strength of neuron connections in NN
         self.optimize.step()
@@ -123,26 +121,27 @@ def run_agent(episodes=2000, play_time=1000):
     print( '| Variables during this run |\n%s\t# of Episodes\n%s\tPlay time\n%s\t\tNN\' hidden layer size\n%s\t\tTarget update'
            '\n%s\t\tAgents memory size\n%s\t\tMemory batch size\n%s\tTau\n%s\tGamma'
            % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA) )
-    scores = []  # list containing scores from each episode
-    scores_window = deque(maxlen=100)   # last 100 scores
+
+    scores = []                             # list containing scores from each episode
+    last_scores = deque(maxlen=100)         # last 100 scores
     for episode in range(episodes):
-        state = env.reset()[0]          # if specific seed used, no improvement of the agent
+        state = env.reset()[0]              # if specific seed used, no improvement of the agent
         score = 0
-        for time in range(play_time):   # define "playtime" of an agent in environment
-            action = agent.act(state)   # act on primary state, get best action from NN
-            next_state, reward, terminated, _, done = env.step(action)  # environment takes one step according to chosen the action
+        for time in range(play_time):       # define "playtime" of an agent in environment
+            action = agent.act(state)                                       # act on primary state, get best action from NN
+            next_state, reward, terminated, _, done = env.step(action)      # environment takes one step according to chosen the action
             agent.evaluate(state, action, reward, next_state)
             state = next_state
             score += reward
             if terminated or done:
                 break
-        scores_window.append(score)  # save most recent 100 scores
+        last_scores.append(score)  # save most recent 100 scores
         scores.append(score)
 
         if episode % 50 == 0:
-            print("Running episode %s. Current averaged score: %.2f" % (episode,np.mean(scores_window)) )
+            print("Running episode %s. Current averaged score: %.2f" % (episode,np.mean(last_scores)) )
 
-        if np.mean(scores_window) >= 200.0:
+        if np.mean(last_scores) >= 200.0:
             print("Training done in %s. Average score of 200 or more achieved!" % episode)
             break
 
