@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as tfunc
@@ -99,7 +100,9 @@ a = torch.randn(5).unsqueeze(1).long().abs()
 print('T: ',T)
 TT = net3(net2(net1(T)))
 print( 'T -> NN -> T: \n', TT)
-print( TT.gather(1, a) )
+# print( TT.gather(1, a) )
+
+print( torch.max(TT, dim=1)[0] )
 
 ##### Gym
 # env = gym.make("LunarLander-v2", render_mode="human")

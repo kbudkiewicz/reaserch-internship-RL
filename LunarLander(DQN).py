@@ -36,7 +36,8 @@ class DNNetwork(nn.Module):
         # x = state.to(torch.device)
         x = F.relu(self.lin1(state))               # ReLU - rectified linear unit. take max(0,input) of the input
         x = F.relu(self.lin2(x))
-        return self.lin3(x)
+        action_set = self.lin3(x)
+        return action_set
 
 ### Defining replay memory
 memory = namedtuple( 'Memory', ('s','a','r','next_s') )
@@ -55,12 +56,13 @@ class Replay_memory(object):
         return len(self.memory)
 
 class Agent():
-    def __init__(self, memory_size, batch_size, tau, gamma,  learning_rate):
+    def __init__(self, memory_size, batch_size, tau, gamma, epsilon, learning_rate):
         self.state_size = 8
         self.action_size = 4
         self.batch_size = batch_size
         self.tau = tau
         self.gamma = gamma
+        self.eps = epsilon
         self.lr = learning_rate
         self.qnet_local = DNNetwork().to(device)
         self.qnet_target = DNNetwork().to(device)
@@ -74,7 +76,7 @@ class Agent():
         if (self.t_step % TARGET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size):
             self.learn( self.memory.get_sample() )
 
-    def act(self, input_state, eps=0.):         # parameter eps for eps-greedy action selection
+    def act(self, input_state):         # parameter self.eps for eps-greedy action selection
         ### return the best action based on current state and NN
         # convert the array from env into torch.tensor in float form
         state = torch.from_numpy(input_state).float()
@@ -104,8 +106,8 @@ class Agent():
         q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]     # q_target
         q_expected = self.qnet_local(s_tens).gather(1, a_tens)                  # current q
 
-        loss = F.mse_loss(q_expected, q_target)     # calculate mean squared loss between expected and target q_values
         self.optimize.zero_grad()
+        loss = F.mse_loss(q_expected, q_target)         # calculate mean squared loss between expected and target q_values
         loss.backward()                                 # backpropagation and recalculating the strength of neuron connections in NN
         self.optimize.step()
 
@@ -118,9 +120,9 @@ class Agent():
 ### Training
 def run_agent(episodes=2000, play_time=1000):
     # print statement returns currently used variables
-    print( '| Variables during this run |\n%s\t# of Episodes\n%s\tPlay time\n%s\t\tNN\' hidden layer size\n%s\t\tTarget update'
-           '\n%s\t\tAgents memory size\n%s\t\tMemory batch size\n%s\tTau\n%s\tGamma'
-           % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA) )
+    print( '| Variables during this run |\n'+ 35*'-' + '\n%s\t# of Episodes\n%s\tPlay time\n%s\t\tNN\' hidden layer size\n%s\t\tTarget update'
+           '\n%s\t\tAgents memory size\n%s\t\tMemory batch size\n%s\tTau\n%s\tGamma\n'
+           % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA)  + 35*'-' )
 
     scores = []                             # list containing scores from each episode
     last_scores = deque(maxlen=100)         # last 100 scores
@@ -139,7 +141,7 @@ def run_agent(episodes=2000, play_time=1000):
         scores.append(score)
 
         if episode % 50 == 0:
-            print("Running episode %s. Current averaged score: %.2f" % (episode,np.mean(last_scores)) )
+            print("Running episode %s. Current averaged score: %.2f" % (episode, np.mean(last_scores)) )
 
         if np.mean(last_scores) >= 200.0:
             print("Training done in %s. Average score of 200 or more achieved!" % episode)
@@ -155,8 +157,9 @@ LAYER_SIZE = 64
 MEMORY_SIZE = 100
 BATCH_SIZE = 10
 LR = 1e-4
+EPS = 0
 
-agent = Agent(memory_size=MEMORY_SIZE,batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR)
+agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 scores = run_agent()
 
 # plot the scores
