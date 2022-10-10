@@ -53,7 +53,7 @@ class Replay_memory(object):
     def __len__(self):
         return len(self.memory)
 
-class Agent():
+class Agent:
     def __init__(self, memory_size, batch_size, tau, gamma, epsilon, learning_rate):
         self.state_size = 8
         self.action_size = 4
@@ -74,12 +74,6 @@ class Agent():
             l.append(i)
         self.list_size = l
 
-    def evaluate(self, *args):
-        self.memory.remember(*args)     # input: s, a, r, next_s
-        self.t_step = (self.t_step + 1) % TARGET_UPDATE
-        if (self.t_step % TARGET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size ):
-            self.learn( self.memory.get_sample() )
-
     def get_action(self, observation):
         # return the best action based on current state and NN
         state = torch.from_numpy(observation).float()               # convert the array from env into torch.tensor in float form
@@ -91,6 +85,12 @@ class Agent():
             return np.argmax( action_values.detach().numpy() )
         else:
             return random.randint(0,3)      # take random action out of 4
+
+    def evaluate(self, *args):
+        self.memory.remember(*args)     # input: s, a, r, next_s
+        self.t_step = (self.t_step + 1) % TARGET_UPDATE
+        if (self.t_step % TARGET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size ):
+            self.learn( self.memory.get_sample() )
 
     def learn(self, exp):
         s_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
@@ -145,7 +145,7 @@ def run_agent(episodes=5000, play_time=1000):
             print("Running episode %s. Currently averaged score: %.2f" % (episode, np.mean(last_scores)) )
 
         if np.mean(last_scores) >= 200.0:
-            print("Training done in %s. Average score of 200 or more achieved!" % episode)
+            print("Average score of 200 or more achieved! Training done in %s episodes." % episode)
             break
 
     return scores
@@ -157,7 +157,7 @@ TARGET_UPDATE = 5
 LAYER_SIZE = 64
 MEMORY_SIZE = 10000
 BATCH_SIZE = 100
-LR = 1e-3
+LR = 1e-4
 EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995
