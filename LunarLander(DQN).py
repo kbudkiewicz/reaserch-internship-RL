@@ -34,9 +34,8 @@ class DNNetwork(nn.Module):
         # kernel_size   size of the tensor/matrix filter between convolutional layers
 
     def forward(self,state):
-        # x = state.to(torch.device)
-        x = F.relu(self.lin1(state))               # ReLU - rectified linear unit. take max(0,input) of the input
-        x = F.relu(self.lin2(x))
+        x = F.relu( self.lin1(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
+        x = F.relu( self.lin2(x) )
         action_set = self.lin3(x)
         return action_set
 
@@ -47,12 +46,10 @@ class Replay_memory(object):
     def __init__(self,memory_size, batch_size):
         self.memory = deque(maxlen=memory_size)
         self.batch_size = batch_size
-    def remember(self, *args):                           # *args: put any amount of arguments into the function
+    def remember(self, *args):              # *args: put any amount of arguments into the function
         self.memory.append( memory(*args) )
     def get_sample(self):
         return random.sample(self.memory,self.batch_size)
-    def batch_size(self):
-        return self.batch_size
     def __len__(self):
         return len(self.memory)
 
@@ -60,6 +57,7 @@ class Agent():
     def __init__(self, memory_size, batch_size, tau, gamma, epsilon, learning_rate):
         self.state_size = 8
         self.action_size = 4
+        self.memory_size = memory_size
         self.batch_size = batch_size
         self.tau = tau
         self.gamma = gamma
@@ -67,32 +65,38 @@ class Agent():
         self.lr = learning_rate
         self.qnet_local = DNNetwork().to(device)
         self.qnet_target = DNNetwork().to(device)
-        self.optimize = optim.Adam(self.qnet_local.parameters(), self.lr)    # huber loss as alternative?
+        self.optimize = optim.Adam( self.qnet_local.parameters(), self.lr )    # huber loss as alternative?
         self.memory = Replay_memory(memory_size,batch_size)
         self.t_step = 0
+
+        l = []
+        for i in range(self.batch_size):
+            l.append(i)
+        self.list_size = l
 
     def evaluate(self, *args):
         self.memory.remember(*args)     # input: s, a, r, next_s
         self.t_step = (self.t_step + 1) % TARGET_UPDATE
-        if (self.t_step % TARGET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size):
+        if (self.t_step % TARGET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size ):
             self.learn( self.memory.get_sample() )
 
     def get_action(self, observation):
-        ### return the best action based on current state and NN
-        state = torch.from_numpy(observation).float()           # convert the array from env into torch.tensor in float form
-        action_values = self.qnet_local.forward(state)          # forward current state through the network
+        # return the best action based on current state and NN
+        state = torch.from_numpy(observation).float()               # convert the array from env into torch.tensor in float form
+        with torch.no_grad():
+            action_values = self.qnet_local.forward(state)          # forward current state through the network. Try with no_grad
 
-        ## eps-greedy action selection
+        # eps-greedy action selection
         if random.random() > self.eps:
             return np.argmax( action_values.detach().numpy() )
         else:
             return random.randint(0,3)      # take random action out of 4
 
     def learn(self, exp):
-        s_tens = torch.tensor( np.zeros((10,8)) ).float()
-        a_tens = torch.tensor( [1,2,3,4,5,6,7,8,9,10] ).unsqueeze(1).long()
-        r_tens = torch.tensor( [1,2,3,4,5,6,7,8,9,10] )
-        s_next_tens = torch.tensor( np.zeros((10,8)) ).float()
+        s_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
+        a_tens = torch.tensor( self.list_size ).unsqueeze(1).long()
+        r_tens = torch.tensor( self.list_size ).float()
+        s_next_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
 
         # unpack memories into a tensor/vector with states, actions, or rewards
         for i in range( len(exp) ):
@@ -106,22 +110,19 @@ class Agent():
         q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]     # q_target
         q_expected = self.qnet_local(s_tens).gather(1, a_tens)                  # current q
 
-        self.optimize.zero_grad()
         loss = F.mse_loss(q_expected, q_target.unsqueeze(1))        # calculate mean squared loss between expected and target q_values
+
+        # optimize the model with backpropagation and no tracing of tensor history
+        self.optimize.zero_grad()
         loss.backward()                                             # backpropagation and recalculating the strength of neuron connections in NN
         self.optimize.step()
-        self.update(self.qnet_local,self.qnet_target)
-
-    def update(self, local, target):
-        for target, local in zip(target.parameters(), local.parameters()):
-            target.data.copy_( self.tau*local.data + (1-self.tau)*target.data )
 
 ### Training
-def run_agent(episodes=2000, play_time=1000):
+def run_agent(episodes=5000, play_time=1000):
     # print statement returns currently used variables
-    print( '| Variables during this run |\n'+ 35*'-' + '\n%s\t# of Episodes\n%s\tPlay time\n%s\t\tNN\' hidden layer size\n%s\t\tTarget update'
-           '\n%s\t\tAgents memory size\n%s\t\tMemory batch size\n%s\tTau\n%s\tGamma\n'
-           % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA)  + 35*'-' )
+    print( '| Variables during this run |\n'+ 35*'-' + '\n%s\t\t# of Episodes\n%s\t\tPlay time\n%s\t\t\tNN\' hidden layer size\n%s\t\t\tTarget update'
+           '\n%s\t\tAgents memory size\n%s\t\t\tMemory batch size\n%s\t\tTau\n%s\t\tGamma\n%s\t\tLearning rate\n'
+           % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR)  + 35*'-' )
 
     scores = []                             # list containing scores from each episode
     last_scores = deque(maxlen=100)
@@ -141,7 +142,7 @@ def run_agent(episodes=2000, play_time=1000):
         scores.append(score)
 
         if episode % 50 == 0:
-            print("Running episode %s. Current averaged score: %.2f" % (episode, np.mean(last_scores)) )
+            print("Running episode %s. Currently averaged score: %.2f" % (episode, np.mean(last_scores)) )
 
         if np.mean(last_scores) >= 200.0:
             print("Training done in %s. Average score of 200 or more achieved!" % episode)
@@ -154,10 +155,10 @@ GAMMA = 0.99
 TAU = 1e-3
 TARGET_UPDATE = 5
 LAYER_SIZE = 64
-MEMORY_SIZE = 100
-BATCH_SIZE = 10
-LR = 1e-4
-EPS = 1
+MEMORY_SIZE = 10000
+BATCH_SIZE = 100
+LR = 1e-3
+EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995
 
