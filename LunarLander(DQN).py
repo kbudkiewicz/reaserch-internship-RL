@@ -40,7 +40,7 @@ class DNNetwork(nn.Module):
         return action_set
 
 ### Defining replay memory
-memory = namedtuple( 'Memory', ('s','a','r','next_s') )
+memory = namedtuple( 'Memory', ('s','a','r','next_s','term') )
 
 class Replay_memory(object):
     def __init__(self,memory_size, batch_size):
@@ -65,7 +65,7 @@ class Agent:
         self.lr = learning_rate
         self.qnet_local = DNNetwork().to(device)
         self.qnet_target = DNNetwork().to(device)
-        self.optimize = optim.Adam( self.qnet_local.parameters(), self.lr )    # huber loss as alternative?
+        self.optimizer = optim.Adam(self.qnet_local.parameters(), self.lr)    # huber loss as alternative?
         self.memory = Replay_memory(memory_size,batch_size)
         self.t_step = 0
 
@@ -87,7 +87,7 @@ class Agent:
             return random.randint(0,3)      # take random action out of 4
 
     def evaluate(self, *args):
-        self.memory.remember(*args)     # input: s, a, r, next_s
+        self.memory.remember(*args)     # input: s, a, r, next_s, terminated
         self.t_step = (self.t_step + 1) % TARGET_UPDATE
         if (self.t_step % TARGET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size ):
             self.learn( self.memory.get_sample() )
@@ -97,6 +97,7 @@ class Agent:
         a_tens = torch.tensor( self.list_size ).unsqueeze(1).long()
         r_tens = torch.tensor( self.list_size ).float()
         s_next_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
+        term_tens = torch.tensor( self.list_size ).unsqueeze(1).long()
 
         # unpack memories into a tensor/vector with states, actions, or rewards
         for i in range( len(exp) ):
@@ -104,27 +105,28 @@ class Agent:
             a_tens[i] = torch.tensor( exp[i].a )
             r_tens[i] = torch.tensor( exp[i].r )
             s_next_tens[i] = torch.tensor( exp[i].next_s )                      # attach s_next from each memory
+            term_tens[i] = torch.tensor( exp[i].term )
 
         # Bellman equation. Calculating q_target and and current q_value
-        q_target_next = self.qnet_target(s_next_tens).detach()                  # get q_values of next states
+        q_target_next = self.qnet_target(s_next_tens)                           # get q_values of next states
         q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]     # q_target
         q_expected = self.qnet_local(s_tens).gather(1, a_tens)                  # current q
 
         loss = F.mse_loss(q_expected, q_target.unsqueeze(1))        # calculate mean squared loss between expected and target q_values
 
         # optimize the model with backpropagation and no tracing of tensor history
-        self.optimize.zero_grad()
-        loss.backward()                                             # backpropagation and recalculating the strength of neuron connections in NN
-        self.optimize.step()
+        loss.backward()                 # backpropagation and recalculating the strength of neuron connections in NN
+        self.optimizer.step()
+        self.optimizer.zero_grad()      # zeroing the gradients of the parameters in optimizer
 
 ### Training
 def run_agent(episodes=5000, play_time=1000):
     # print statement returns currently used variables
-    print( '| Variables during this run |\n'+ 35*'-' + '\n%s\t\t# of Episodes\n%s\t\tPlay time\n%s\t\t\tNN\' hidden layer size\n%s\t\t\tTarget update'
+    print( '| Variables during this run |\n'+ 60*'-' + '\n%s\t\t# of Episodes\n%s\t\tPlay time\n%s\t\t\tNN\' hidden layer size\n%s\t\t\tTarget update'
            '\n%s\t\tAgents memory size\n%s\t\t\tMemory batch size\n%s\t\tTau\n%s\t\tGamma\n%s\t\tLearning rate\n'
-           % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR)  + 35*'-' )
+           % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR)  + 60*'-' )
 
-    scores = []                             # list containing scores from each episode
+    scores, loss = [], []                             # list containing scores from each episode
     last_scores = deque(maxlen=100)
     for episode in range(episodes):
         state = env.reset()[0]
@@ -132,7 +134,7 @@ def run_agent(episodes=5000, play_time=1000):
         for time in range(play_time):       # define "playtime" of an agent in environment
             action = agent.get_action(state)                                    # act on primary state, get best action from NN
             next_state, reward, terminated, truncated, _ = env.step(action)     # environment takes one step according to chosen the action
-            agent.evaluate(state, action, reward, next_state)
+            agent.evaluate(state, action, reward, next_state, terminated)
             state = next_state
             score += reward
             if terminated or truncated:
@@ -155,7 +157,7 @@ GAMMA = 0.99
 TAU = 1e-3
 TARGET_UPDATE = 5
 LAYER_SIZE = 64
-MEMORY_SIZE = 10000
+MEMORY_SIZE = 50000
 BATCH_SIZE = 100
 LR = 1e-4
 EPS = 1.0
