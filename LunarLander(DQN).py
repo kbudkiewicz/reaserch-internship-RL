@@ -7,9 +7,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib
 import matplotlib.pyplot as mpl
-import gym
+import gym, Box2D
 from collections import deque, namedtuple
-import Box2D
 
 ### Assigning the device
 if torch.cuda.is_available():
@@ -76,6 +75,12 @@ class Agent:
             l.append(i)
         self.list_size = l
 
+        self.s_tens = torch.tensor(np.zeros((self.batch_size, 8))).float()
+        self.a_tens = torch.tensor(self.list_size).unsqueeze(1).long()
+        self.r_tens = torch.tensor(self.list_size).float()
+        self.s_next_tens = torch.tensor(np.zeros((self.batch_size, 8))).float()
+        self.term_tens = torch.tensor(self.list_size).long()
+
     def get_action(self, observation):
         # return the best action based on current state and NN
         state = torch.from_numpy(observation).float()               # convert the array from env into torch.tensor in float form
@@ -95,24 +100,18 @@ class Agent:
             self.learn( self.memory.get_sample() )
 
     def learn(self, exp):
-        s_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
-        a_tens = torch.tensor( self.list_size ).unsqueeze(1).long()
-        r_tens = torch.tensor( self.list_size ).float()
-        s_next_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
-        term_tens = torch.tensor( self.list_size ).long()
-
         # unpack memories into a tensor/vector with states, actions, or rewards
         for i in range( len(exp) ):
-            s_tens[i] = torch.tensor( exp[i].s )
-            a_tens[i] = torch.tensor( exp[i].a )
-            r_tens[i] = torch.tensor( exp[i].r )
-            s_next_tens[i] = torch.tensor( exp[i].next_s )      # attach s_next from each memory
-            term_tens[i] = torch.tensor( exp[i].term )
+            self.s_tens[i] = torch.tensor( exp[i].s )
+            self.a_tens[i] = torch.tensor( exp[i].a )
+            self.r_tens[i] = torch.tensor( exp[i].r )
+            self.s_next_tens[i] = torch.tensor( exp[i].next_s )      # attach s_next from each memory
+            self.term_tens[i] = torch.tensor( exp[i].term )
 
         # Bellman equation. Calculating q_target and and current q_value
-        q_target_next = self.qnet_target(s_next_tens)                                           # get q_values of next states
-        q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]*(1-term_tens)       # q_target
-        q_expected = self.qnet_local(s_tens).gather(1, a_tens).squeeze()                        # current q
+        q_target_next = self.qnet_target(self.s_next_tens)                                                # get q_values of next states
+        q_target = self.r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]*(1-self.term_tens)       # q_target
+        q_expected = self.qnet_local(self.s_tens).gather(1, self.a_tens).squeeze()                        # current q
 
         # optimize the model with backpropagation and no tracing of tensor history
         self.loss = F.mse_loss(q_expected, q_target)        # calculate mean squared loss between expected and target q_values
@@ -132,7 +131,7 @@ def run_agent(episodes=3000, play_time=1000):
            % (episodes,play_time,LAYER_SIZE,NET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR)  + 60*'-' )
 
     scores = []
-    last_scores, loss = deque(maxlen=100), deque(maxlen=50)
+    last_scores, loss = deque(maxlen=100), deque(maxlen=100)
     for episode in range(episodes):
         state = env.reset()[0]
         score = 0
@@ -173,25 +172,19 @@ def run_agent(episodes=3000, play_time=1000):
 ### Training parameters
 GAMMA = 0.99
 TAU = 1e-3
-NET_UPDATE = 10
+NET_UPDATE = 6
 LAYER_SIZE = 64
 MEMORY_SIZE = 100000
 BATCH_SIZE = 100
-LR = 1e-4
+LR = 5e-4
 EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995
 
-t0 = time.time()
+t0 = time.process_time()
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 scores = run_agent()
-print( '\nTime needed: %s' % (time.time()-t0) )
-print( agent.qnet_target.parameters() )
+t1 = time.process_time()
+print( '\nTime needed in min: %s' % ( (t1-t0)/60 ) )
+# print( agent.qnet_target.parameters() )
 env.close()
-
-# plot the scores
-# fig = mplt.figure()
-# mplt.plot( len(scores), scores)
-# mplt.xlabel('Episode #')
-# mplt.ylabel('Score')
-# mplt.show()
