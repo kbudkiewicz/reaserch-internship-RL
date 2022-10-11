@@ -11,6 +11,7 @@ from collections import deque, namedtuple
 ### Loop testing whether a condition in the environment (both legs touching the ground // True) is met. Then break the loop and return total score
 # total_reward = 0.0
 # total_steps = 0
+# env.reset()
 # while True:
 #     action = env.action_space.sample()
 #     obs, reward, f1 ,f2, _ = env.step(action)
@@ -116,4 +117,3 @@ print( torch.max(TT, dim=1)[0] )
 #
 #     if terminated:
 #         observation, info = env.reset()
-#         env.close()

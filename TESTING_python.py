@@ -77,11 +77,11 @@ class Chemical:
 # lion = animal('Latin name','Big','Average lion')
 # print(lion)
 
-point_3d = namedtuple('Point',('x','y','z'))
-for i in range(6):
-    p = point_3d(i,2*i,3*i)
-    print(p, random.sample(p,2))    # from library random use sample method
-                                    # sample(obj, size) - from obj return a list ( len=size ) with random attributes of obj
+# point_3d = namedtuple('Point',('x','y','z'))
+# for i in range(6):
+#     p = point_3d(i,2*i,3*i)
+#     print(p, random.sample(p,2))    # from library random use sample method
+                                      # sample(obj, size) - from obj return a list ( len=size ) with random attributes of obj
 
 ### Math
 # print(20%4)     # x%y returns the 'rest' of division
@@ -111,3 +111,19 @@ for i in range(6):
 #     print(i)
 # t_1 = time.time()
 # print( time.asctime(time.localtime(t_1-t_0)) )
+
+### np.random.choice()
+# memory = deque(maxlen=100)
+# mem = namedtuple('Memory',('x','y'))
+#
+# for i in range(100):
+#     memory.append((i,i))
+#
+# print(memory)
+# print(np.random.choice(memory, 10, replace=False))
+
+### zip()
+a = ['A','B']
+b = [1,2]
+x = zip(a,b)
+print(list(x))

@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib
-import matplotlib.pyplot as mplt
+import matplotlib.pyplot as mpl
 import gym
 from collections import deque, namedtuple
 import Box2D
@@ -63,8 +63,9 @@ class Agent:
         self.gamma = gamma
         self.eps = epsilon
         self.lr = learning_rate
+        self.loss = 300
         self.qnet_local = DNNetwork().to(device)
-        self.qnet_target = DNNetwork().to(device)
+        self.qnet_target = DNNetwork().to(device).eval()
         self.optimizer = optim.Adam(self.qnet_local.parameters(), self.lr)    # huber loss as alternative?
         self.memory = Replay_memory(memory_size,batch_size)
         self.t_step = 0
@@ -88,11 +89,13 @@ class Agent:
 
     def evaluate(self, *args):
         self.memory.remember(*args)     # input: s, a, r, next_s, terminated
-        self.t_step = (self.t_step + 1) % TARGET_UPDATE
-        if (self.t_step % TARGET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size ):
+        self.t_step = self.t_step + 1
+        if (self.t_step % NET_UPDATE == 0) and ( self.memory.__len__() >= self.batch_size ):
             self.learn( self.memory.get_sample() )
 
     def learn(self, exp):
+        self.optimizer.zero_grad()      # zeroing the gradients of the parameters in optimizer
+
         s_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
         a_tens = torch.tensor( self.list_size ).unsqueeze(1).long()
         r_tens = torch.tensor( self.list_size ).float()
@@ -112,26 +115,28 @@ class Agent:
         q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]     # q_target
         q_expected = self.qnet_local(s_tens).gather(1, a_tens)                  # current q
 
-        loss = F.mse_loss(q_expected, q_target.unsqueeze(1))        # calculate mean squared loss between expected and target q_values
-
         # optimize the model with backpropagation and no tracing of tensor history
-        loss.backward()                 # backpropagation and recalculating the strength of neuron connections in NN
+        self.loss = F.mse_loss(q_expected, q_target.unsqueeze(1))       # calculate mean squared loss between expected and target q_values
+        self.loss.backward()                                            # backpropagation and recalculating the strength of neuron connections in NN
         self.optimizer.step()
-        self.optimizer.zero_grad()      # zeroing the gradients of the parameters in optimizer
+
+        # update network parameters
+        for target_param, local_param in zip(self.qnet_target.parameters(), self.qnet_local.parameters()):
+            target_param.data.copy_(self.tau * local_param.data + (1. - self.tau) * target_param.data)
 
 ### Training
-def run_agent(episodes=5000, play_time=1000):
+def run_agent(episodes=3000, play_time=1000):
     # print statement returns currently used variables
-    print( '| Variables during this run |\n'+ 60*'-' + '\n%s\t\t# of Episodes\n%s\t\tPlay time\n%s\t\t\tNN\' hidden layer size\n%s\t\t\tTarget update'
+    print( '| Variables during this run |\n'+ 60*'-' + '\n%s\t\t# of Episodes\n%s\t\tPlay time\n%s\t\t\tNN\' hidden layer size\n%s\t\t\tNetwork update'
            '\n%s\t\tAgents memory size\n%s\t\t\tMemory batch size\n%s\t\tTau\n%s\t\tGamma\n%s\t\tLearning rate\n'
-           % (episodes,play_time,LAYER_SIZE,TARGET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR)  + 60*'-' )
+           % (episodes,play_time,LAYER_SIZE,NET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR)  + 60*'-' )
 
-    scores, loss = [], []                             # list containing scores from each episode
-    last_scores = deque(maxlen=100)
+    scores = []
+    last_scores, loss = deque(maxlen=100), deque(maxlen=50)
     for episode in range(episodes):
         state = env.reset()[0]
         score = 0
-        for time in range(play_time):       # define "playtime" of an agent in environment
+        for time in range(play_time):                                           # "playtime" = max amount of steps allowed in environment
             action = agent.get_action(state)                                    # act on primary state, get best action from NN
             next_state, reward, terminated, truncated, _ = env.step(action)     # environment takes one step according to chosen the action
             agent.evaluate(state, action, reward, next_state, terminated)
@@ -142,12 +147,25 @@ def run_agent(episodes=5000, play_time=1000):
         agent.eps = max(EPS_END,EPS_DEC*agent.eps)  # update eps
         last_scores.append(score)                   # save most recent 100 scores
         scores.append(score)
+        loss.append( int(agent.loss) )
 
         if episode % 50 == 0:
             print("Running episode %s. Currently averaged score: %.2f" % (episode, np.mean(last_scores)) )
+            print('Loss average = %s' % np.mean(loss))
+
+            # diagnostics
+            mpl.figure(1)   # scores
+            x = np.linspace(0,episode, len(scores))
+            y = scores
+            mpl.plot(x,y)
+            mpl.figure(2)   # loss
+            x = np.linspace(0, episode, len(loss))
+            y = loss
+            mpl.plot(x, y)
+            mpl.show()
 
         if np.mean(last_scores) >= 200.0:
-            print("Average score of 200 or more achieved! Training done in %s episodes." % episode)
+            print("Environment solved! Training done in %s episodes." % episode)
             break
 
     return scores
@@ -155,7 +173,7 @@ def run_agent(episodes=5000, play_time=1000):
 ### Training parameters
 GAMMA = 0.99
 TAU = 1e-3
-TARGET_UPDATE = 5
+NET_UPDATE = 10
 LAYER_SIZE = 64
 MEMORY_SIZE = 50000
 BATCH_SIZE = 100
@@ -166,6 +184,7 @@ EPS_DEC = 0.995
 
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 scores = run_agent()
+env.close()
 
 # plot the scores
 # fig = mplt.figure()
@@ -173,5 +192,3 @@ scores = run_agent()
 # mplt.xlabel('Episode #')
 # mplt.ylabel('Score')
 # mplt.show()
-
-env.close()
