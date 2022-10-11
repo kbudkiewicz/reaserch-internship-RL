@@ -104,13 +104,13 @@ class Chemical:
 #     print(random.randint(0,3))
 
 ### Time module
-# import time
-# print( time.asctime(time.localtime(time.time())) )
-# t_0 = time.time()
-# for i in range(10000):
-#     print(i)
-# t_1 = time.time()
-# print( time.asctime(time.localtime(t_1-t_0)) )
+import time
+print( time.asctime(time.localtime(time.time())) )
+t_0 = time.time()
+for i in range(10000):
+    print(i)
+t_1 = time.time()
+print( time.asctime(time.localtime(t_1-t_0)) )
 
 ### np.random.choice()
 # memory = deque(maxlen=100)

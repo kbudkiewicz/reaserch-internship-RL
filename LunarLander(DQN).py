@@ -1,4 +1,5 @@
 import random
+import time
 import numpy as np
 import torch
 import torch.nn as nn
@@ -164,7 +165,7 @@ def run_agent(episodes=3000, play_time=1000):
             # mpl.plot(x, y)
 
         if np.mean(last_scores) >= 200.0:
-            print("Environment solved! Training done in %s episodes." % episode)
+            print("\nEnvironment solved! Training done in %s episodes." % episode)
             break
 
     return scores
@@ -181,8 +182,11 @@ EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995
 
+t0 = time.time()
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 scores = run_agent()
+print( '\nTime needed: %s' % (time.time()-t0) )
+print( agent.qnet_target.parameters() )
 env.close()
 
 # plot the scores
