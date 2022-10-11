@@ -18,7 +18,7 @@ else:
 print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
-env = gym.make("LunarLander-v2")
+env = gym.make("LunarLander-v2", render='human')
 
 class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
@@ -94,8 +94,6 @@ class Agent:
             self.learn( self.memory.get_sample() )
 
     def learn(self, exp):
-        self.optimizer.zero_grad()      # zeroing the gradients of the parameters in optimizer
-
         s_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
         a_tens = torch.tensor( self.list_size ).unsqueeze(1).long()
         r_tens = torch.tensor( self.list_size ).float()
@@ -107,22 +105,23 @@ class Agent:
             s_tens[i] = torch.tensor( exp[i].s )
             a_tens[i] = torch.tensor( exp[i].a )
             r_tens[i] = torch.tensor( exp[i].r )
-            s_next_tens[i] = torch.tensor( exp[i].next_s )                      # attach s_next from each memory
+            s_next_tens[i] = torch.tensor( exp[i].next_s )      # attach s_next from each memory
             term_tens[i] = torch.tensor( exp[i].term )
 
         # Bellman equation. Calculating q_target and and current q_value
-        q_target_next = self.qnet_target(s_next_tens)                           # get q_values of next states
-        q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]     # q_target
-        q_expected = self.qnet_local(s_tens).gather(1, a_tens)                  # current q
+        q_target_next = self.qnet_target(s_next_tens)                                           # get q_values of next states
+        q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]#*(1-term_tens)      # q_target
+        q_expected = self.qnet_local(s_tens).gather(1, a_tens).squeeze()                        # current q
 
         # optimize the model with backpropagation and no tracing of tensor history
-        self.loss = F.mse_loss(q_expected, q_target.unsqueeze(1))       # calculate mean squared loss between expected and target q_values
-        self.loss.backward()                                            # backpropagation and recalculating the strength of neuron connections in NN
+        self.loss = F.mse_loss(q_expected, q_target)        # calculate mean squared loss between expected and target q_values
+        self.loss.backward()                                # backpropagation and recalculating the strength of neuron connections in NN
         self.optimizer.step()
+        self.optimizer.zero_grad()  # zeroing the gradients of the parameters in optimizer
 
         # update network parameters
-        for target_param, local_param in zip(self.qnet_target.parameters(), self.qnet_local.parameters()):
-            target_param.data.copy_(self.tau * local_param.data + (1. - self.tau) * target_param.data)
+        for target_param, local_param in zip( self.qnet_target.parameters(), self.qnet_local.parameters() ):
+            target_param.data.copy_( self.tau*local_param.data + (1.-self.tau)*target_param.data )
 
 ### Training
 def run_agent(episodes=3000, play_time=1000):
@@ -154,15 +153,14 @@ def run_agent(episodes=3000, play_time=1000):
             print('Loss average = %s' % np.mean(loss))
 
             # diagnostics
-            mpl.figure(1)   # scores
-            x = np.linspace(0,episode, len(scores))
-            y = scores
-            mpl.plot(x,y)
-            mpl.figure(2)   # loss
-            x = np.linspace(0, episode, len(loss))
-            y = loss
-            mpl.plot(x, y)
-            mpl.show()
+            # mpl.figure(1)   # scores
+            # x = np.linspace(0,episode, len(scores))
+            # y = scores
+            # mpl.plot(x,y)
+            # mpl.figure(2)   # loss
+            # x = np.linspace(0, episode, len(loss))
+            # y = loss
+            # mpl.plot(x, y)
 
         if np.mean(last_scores) >= 200.0:
             print("Environment solved! Training done in %s episodes." % episode)
