@@ -105,12 +105,18 @@ class Chemical:
 
 ### Time module
 import time
-print( time.asctime(time.localtime(time.time())) )
-t0 = time.process_time()
-for i in range(10000):
-    print(i)
+# print( time.asctime(time.localtime(time.time())) )
+# t0 = time.process_time()
+# for i in range(10000):
+#     print(i)
+# t1 = time.process_time()
+# print( t1-t0 )
+
 t1 = time.process_time()
-print( t1-t0 )
+for i in range(120000):
+    print(i)
+t2 = time.process_time()
+print( t2-t1 )
 
 ### np.random.choice()
 # memory = deque(maxlen=100)

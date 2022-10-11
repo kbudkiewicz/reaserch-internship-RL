@@ -168,7 +168,7 @@ def run_agent(episodes=2000, play_time=1000):
             print('Loss average = %s' % np.mean(loss))
             break
 
-    return scores
+    return scores, loss
 
 ### Training parameters
 GAMMA = 0.99
@@ -177,15 +177,17 @@ NET_UPDATE = 6
 LAYER_SIZE = 64
 MEMORY_SIZE = 100000
 BATCH_SIZE = 100
-LR = 4e-4
+LR = 3e-4
 EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995
 
-t0 = time.process_time()
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
-scores = run_agent()
+t0 = time.process_time()
+scores, loss = run_agent()
 t1 = time.process_time()
 print( '\nTime needed in min: %s' % ( (t1-t0)/60 ) )
+print(scores)
+print(loss)
 # print( agent.qnet_target.parameters() )
 env.close()
