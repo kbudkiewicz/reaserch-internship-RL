@@ -57,6 +57,7 @@ from collections import deque, namedtuple
 
 ### torch.from_numpy() - convert a numpy array into a torch.tensor()
 
+### neural networks
 # net = nn.Linear(6, 30)
 # net2 = nn.Linear(30,2)
 # T = torch.randn(2, 6)
@@ -93,17 +94,17 @@ from collections import deque, namedtuple
 #     T[i] = torch.tensor( brain[i].s_next )
 # print('\nNew T:\n', T)
 
-net1 = nn.Linear(4,32)
-net2 = nn.Linear(32,32)
-net3 = nn.Linear(32,6)
-T = torch.rand(5,4)
-a = torch.randn(5).unsqueeze(1).long().abs()
-print('T: ',T)
-TT = net3(net2(net1(T)))
-print( 'T -> NN -> T: \n', TT)
+# net1 = nn.Linear(4,32)
+# net2 = nn.Linear(32,32)
+# net3 = nn.Linear(32,6)
+# T = torch.rand(5,4)
+# a = torch.randn(5).unsqueeze(1).long().abs()
+# print('T: ',T)
+# TT = net3(net2(net1(T)))
+# print( 'T -> NN -> T: \n', TT)
 # print( TT.gather(1, a) )
-
-print( torch.max(TT, dim=1)[0] )
+#
+# print( torch.max(TT, dim=1)[0] )
 
 ##### Gym
 # env = gym.make("LunarLander-v2", render_mode="human")
@@ -117,3 +118,15 @@ print( torch.max(TT, dim=1)[0] )
 #
 #     if terminated:
 #         observation, info = env.reset()
+
+### multiplying tensors
+T1 = torch.tensor(np.eye(5))
+print(T1)
+for i in range(5):
+    for j in range(5):
+        T1[i] = j
+print(T1.size())
+T2 = torch.tensor([1,2,3,4,5])#.unsqueeze(1)
+print(1 - T2)
+T3 = T1 * T2
+print(T3.size(), T3)

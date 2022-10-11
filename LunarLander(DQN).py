@@ -18,7 +18,7 @@ else:
 print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
-env = gym.make("LunarLander-v2", render='human')
+env = gym.make("LunarLander-v2")
 
 class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
@@ -79,7 +79,7 @@ class Agent:
         # return the best action based on current state and NN
         state = torch.from_numpy(observation).float()               # convert the array from env into torch.tensor in float form
         with torch.no_grad():
-            action_values = self.qnet_local.forward(state)          # forward current state through the network. Try with no_grad
+            action_values = self.qnet_local.forward(state)          # forward current state through the network
 
         # eps-greedy action selection
         if random.random() > self.eps:
@@ -98,7 +98,7 @@ class Agent:
         a_tens = torch.tensor( self.list_size ).unsqueeze(1).long()
         r_tens = torch.tensor( self.list_size ).float()
         s_next_tens = torch.tensor( np.zeros((self.batch_size,8)) ).float()
-        term_tens = torch.tensor( self.list_size ).unsqueeze(1).long()
+        term_tens = torch.tensor( self.list_size ).long()
 
         # unpack memories into a tensor/vector with states, actions, or rewards
         for i in range( len(exp) ):
@@ -110,7 +110,7 @@ class Agent:
 
         # Bellman equation. Calculating q_target and and current q_value
         q_target_next = self.qnet_target(s_next_tens)                                           # get q_values of next states
-        q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]#*(1-term_tens)      # q_target
+        q_target = r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]*(1-term_tens)       # q_target
         q_expected = self.qnet_local(s_tens).gather(1, a_tens).squeeze()                        # current q
 
         # optimize the model with backpropagation and no tracing of tensor history
@@ -144,8 +144,9 @@ def run_agent(episodes=3000, play_time=1000):
             if terminated or truncated:
                 break
         agent.eps = max(EPS_END,EPS_DEC*agent.eps)  # update eps
-        last_scores.append(score)                   # save most recent 100 scores
+
         scores.append(score)
+        last_scores.append(score)
         loss.append( int(agent.loss) )
 
         if episode % 50 == 0:
@@ -173,7 +174,7 @@ GAMMA = 0.99
 TAU = 1e-3
 NET_UPDATE = 10
 LAYER_SIZE = 64
-MEMORY_SIZE = 50000
+MEMORY_SIZE = 100000
 BATCH_SIZE = 100
 LR = 1e-4
 EPS = 1.0
