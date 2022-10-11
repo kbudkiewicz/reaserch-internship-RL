@@ -124,7 +124,7 @@ class Agent:
             target_param.data.copy_( self.tau*local_param.data + (1.-self.tau)*target_param.data )
 
 ### Training
-def run_agent(episodes=3000, play_time=1000):
+def run_agent(episodes=2000, play_time=1000):
     # print statement returns currently used variables
     print( '| Variables during this run |\n'+ 60*'-' + '\n%s\t\t# of Episodes\n%s\t\tPlay time\n%s\t\t\tNN\' hidden layer size\n%s\t\t\tNetwork update'
            '\n%s\t\tAgents memory size\n%s\t\t\tMemory batch size\n%s\t\tTau\n%s\t\tGamma\n%s\t\tLearning rate\n'
@@ -165,18 +165,19 @@ def run_agent(episodes=3000, play_time=1000):
 
         if np.mean(last_scores) >= 200.0:
             print("\nEnvironment solved! Training done in %s episodes." % episode)
+            print('Loss average = %s' % np.mean(loss))
             break
 
     return scores
 
 ### Training parameters
 GAMMA = 0.99
-TAU = 1e-3
+TAU = 2.5e-3
 NET_UPDATE = 6
 LAYER_SIZE = 64
 MEMORY_SIZE = 100000
 BATCH_SIZE = 100
-LR = 5e-4
+LR = 4e-4
 EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995
