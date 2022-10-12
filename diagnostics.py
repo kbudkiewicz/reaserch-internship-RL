@@ -49,7 +49,6 @@ def diagnose(list_scores, list_loss, episodes):
     current_time = '%s_%s_%s@%s_%s' % (day, month, year, hour, minute)
 
     # save the figures with the time of creation
-    print('Fig_%s' % current_time)
     scores_plot.savefig('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Scores_%s.png' % current_time)
     loss_plot.savefig('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Loss_%s.png' % current_time)
 
