@@ -111,12 +111,13 @@ import time
 #     print(i)
 # t1 = time.process_time()
 # print( t1-t0 )
+# t1 = time.process_time()
+# for i in range(120000):
+#     print(i)
+# t2 = time.process_time()
+# print( t2-t1 )
 
-t1 = time.process_time()
-for i in range(120000):
-    print(i)
-t2 = time.process_time()
-print( t2-t1 )
+print( time.localtime(time.time()).tm_mday )
 
 ### np.random.choice()
 # memory = deque(maxlen=100)

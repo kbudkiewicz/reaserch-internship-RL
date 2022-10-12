@@ -5,10 +5,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import matplotlib
-import matplotlib.pyplot as mpl
 import gym, Box2D
 from collections import deque, namedtuple
+from diagnostics import diagnose
 
 ### Assigning the device
 if torch.cuda.is_available():
@@ -91,7 +90,7 @@ class Agent:
         if random.random() > self.eps:
             return np.argmax( action_values.detach().numpy() )
         else:
-            return random.randint(0,3)      # take random action out of 4
+            return random.randint(0,3)
 
     def evaluate(self, *args):
         self.memory.remember(*args)     # input: s, a, r, next_s, terminated
@@ -100,12 +99,12 @@ class Agent:
             self.learn( self.memory.get_sample() )
 
     def learn(self, exp):
-        # unpack memories into a tensor/vector with states, actions, or rewards
+        # unpack memories into a tensor/vector with states, actions, or rewards. attach an argument of named tuple from each memory
         for i in range( len(exp) ):
             self.s_tens[i] = torch.tensor( exp[i].s )
             self.a_tens[i] = torch.tensor( exp[i].a )
             self.r_tens[i] = torch.tensor( exp[i].r )
-            self.s_next_tens[i] = torch.tensor( exp[i].next_s )      # attach s_next from each memory
+            self.s_next_tens[i] = torch.tensor( exp[i].next_s )
             self.term_tens[i] = torch.tensor( exp[i].term )
 
         # Bellman equation. Calculating q_target and and current q_value
@@ -117,7 +116,7 @@ class Agent:
         self.loss = F.mse_loss(q_expected, q_target)        # calculate mean squared loss between expected and target q_values
         self.loss.backward()                                # backpropagation and recalculating the strength of neuron connections in NN
         self.optimizer.step()
-        self.optimizer.zero_grad()  # zeroing the gradients of the parameters in optimizer
+        self.optimizer.zero_grad()                          # zeroing the gradients of the parameters in optimizer
 
         # update network parameters
         for target_param, local_param in zip( self.qnet_target.parameters(), self.qnet_local.parameters() ):
@@ -130,8 +129,8 @@ def run_agent(episodes=2000, play_time=1000):
            '\n%s\t\tAgents memory size\n%s\t\t\tMemory batch size\n%s\t\tTau\n%s\t\tGamma\n%s\t\tLearning rate\n'
            % (episodes,play_time,LAYER_SIZE,NET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR)  + 60*'-' )
 
-    scores = []
-    last_scores, loss = deque(maxlen=100), deque(maxlen=100)
+    scores, loss = [], []
+    last_scores, last_loss = deque(maxlen=100), deque(maxlen=100)
     for episode in range(episodes):
         state = env.reset()[0]
         score = 0
@@ -146,26 +145,18 @@ def run_agent(episodes=2000, play_time=1000):
         agent.eps = max(EPS_END,EPS_DEC*agent.eps)  # update eps
 
         scores.append(score)
-        last_scores.append(score)
         loss.append( int(agent.loss) )
+        last_scores.append(score)
+        last_loss.append( int(agent.loss) )
 
         if episode % 50 == 0:
             print("Running episode %s. Currently averaged score: %.2f" % (episode, np.mean(last_scores)) )
-            print('Loss average = %s' % np.mean(loss))
-
-            # diagnostics
-            # mpl.figure(1)   # scores
-            # x = np.linspace(0,episode, len(scores))
-            # y = scores
-            # mpl.plot(x,y)
-            # mpl.figure(2)   # loss
-            # x = np.linspace(0, episode, len(loss))
-            # y = loss
-            # mpl.plot(x, y)
+            print('Loss average = %s' % np.mean(last_loss))
 
         if np.mean(last_scores) >= 200.0:
             print("\nEnvironment solved! Training done in %s episodes." % episode)
-            print('Loss average = %s' % np.mean(loss))
+            print('Loss average = %s' % np.mean(last_loss))
+            env.close()
             break
 
     return scores, loss
@@ -183,11 +174,11 @@ EPS_END = 1e-2
 EPS_DEC = 0.995
 
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
-t0 = time.process_time()
+# t0 = time.process_time()
 scores, loss = run_agent()
-t1 = time.process_time()
-print( '\nTime needed in min: %s' % ( (t1-t0)/60 ) )
+diagnose(scores,loss)
+# t1 = time.process_time()
+# print( '\nTime needed in min: %s' % ( (t1-t0)/60 ) )
 print(scores)
 print(loss)
 # print( agent.qnet_target.parameters() )
-env.close()
