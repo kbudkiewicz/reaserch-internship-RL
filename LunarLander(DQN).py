@@ -80,10 +80,10 @@ class Agent:
             l.append(i)
         self.list_size = l
 
-        self.s_tens = torch.tensor(np.zeros((self.batch_size, 8))).float()
+        self.s_tens = torch.tensor( np.zeros((self.batch_size, 8)) ).float()
         self.a_tens = torch.tensor(self.list_size).unsqueeze(1).long()
         self.r_tens = torch.tensor(self.list_size).float()
-        self.s_next_tens = torch.tensor(np.zeros((self.batch_size, 8))).float()
+        self.s_next_tens = torch.tensor( np.zeros((self.batch_size, 8)) ).float()
         self.term_tens = torch.tensor(self.list_size).long()
 
     def get_action(self, observation):
@@ -181,12 +181,8 @@ EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995
 
-# t0 = time.process_time()
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 scores, loss, last_episode = run_agent()
 print(scores)
 print(loss)
-diagnose(scores, loss, last_episode)
-# t1 = time.process_time()
-# print( '\nTime needed in min: %s' % ( (t1-t0)/60 ) )
-# print( agent.qnet_target.parameters() )
+diagnose(scores, loss, last_episode)# print( agent.qnet_target.parameters() )
