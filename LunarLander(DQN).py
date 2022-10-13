@@ -25,7 +25,8 @@ class DNNetwork(nn.Module):
         self.layer_size = layer_size
         self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
         self.lin2 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
-        self.lin3 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
+        self.lin3 = nn.Linear(layer_size,layer_size)
+        self.lin4 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
         self.to(device)
 
         ### For CNNs
@@ -35,7 +36,8 @@ class DNNetwork(nn.Module):
     def forward(self,state):
         x = F.relu( self.lin1(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
         x = F.relu( self.lin2(x) )
-        action_set = self.lin3(x)
+        x = F.relu( self.lin3(x) )
+        action_set = self.lin4(x)
         return action_set
 
 ### Defining replay memory
@@ -152,6 +154,8 @@ def run_agent(episodes=2000, play_time=1000):
         if episode % 50 == 0:
             print("Running episode %s. Currently averaged score: %.2f" % (episode, np.mean(last_scores)) )
             print('Loss average = %s' % np.mean(last_loss))
+            if agent.eps >= EPS_END:
+                print('Eps = %s' % (agent.eps))
 
         if np.mean(last_scores) >= 200.0:
             print("\nEnvironment solved! Training done in %s episodes." % episode)

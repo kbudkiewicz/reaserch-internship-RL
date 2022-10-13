@@ -15,6 +15,7 @@ def diagnose(list_scores, list_loss, episodes):
             m1.append( np.mean(d) )
     mx1 = np.linspace( 100, episodes, len(m1) )
 
+    # plot scores
     scores_plot = mpl.figure(1)
     mpl.title('Scores')
     mpl.xlabel('Episode #')
@@ -24,7 +25,7 @@ def diagnose(list_scores, list_loss, episodes):
     mpl.plot(mx1,m1, label='Moving mean of 100 scores')
 
     x2 = x1
-    # get the moving mean of scores
+    # get the moving mean of loss
     l1 = []
     d = deque(maxlen=100)
     for i in list_loss:
@@ -33,6 +34,7 @@ def diagnose(list_scores, list_loss, episodes):
             l1.append( np.mean(d) )
     lx1 = np.linspace( 100, episodes, len(l1) )
 
+    # plot loss in a separate figure
     loss_plot = mpl.figure(2)
     mpl.title('Loss')
     mpl.xlabel('Episode #')
