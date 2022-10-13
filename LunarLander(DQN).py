@@ -26,7 +26,8 @@ class DNNetwork(nn.Module):
         self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
         self.lin2 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
         self.lin3 = nn.Linear(layer_size,layer_size)
-        self.lin4 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
+        self.lin4 = nn.Linear(layer_size,layer_size)
+        self.lin5 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
         self.to(device)
 
         ### For CNNs
@@ -37,7 +38,8 @@ class DNNetwork(nn.Module):
         x = F.relu( self.lin1(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
         x = F.relu( self.lin2(x) )
         x = F.relu( self.lin3(x) )
-        action_set = self.lin4(x)
+        x = F.relu( self.lin4(x) )
+        action_set = self.lin5(x)
         return action_set
 
 ### Defining replay memory
