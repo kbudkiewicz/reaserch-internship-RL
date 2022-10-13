@@ -27,7 +27,8 @@ class DNNetwork(nn.Module):
         self.lin2 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
         self.lin3 = nn.Linear(layer_size,layer_size)
         self.lin4 = nn.Linear(layer_size,layer_size)
-        self.lin5 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
+        self.lin5 = nn.Linear(layer_size, layer_size)
+        self.lin6 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
         self.to(device)
 
         ### For CNNs
@@ -39,7 +40,8 @@ class DNNetwork(nn.Module):
         x = F.relu( self.lin2(x) )
         x = F.relu( self.lin3(x) )
         x = F.relu( self.lin4(x) )
-        action_set = self.lin5(x)
+        x = F.relu( self.lin5(x) )
+        action_set = self.lin6(x)
         return action_set
 
 ### Defining replay memory
@@ -179,8 +181,8 @@ EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995
 
-agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 # t0 = time.process_time()
+agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 scores, loss, last_episode = run_agent()
 print(scores)
 print(loss)
