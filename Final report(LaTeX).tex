@@ -19,11 +19,13 @@
 %\tableofcontents
 \newpage
 \section*{Abstract}
-This document is the final report summarizing the work done by me during my 6 week research internship at the Faculty of Bioinformatics led by Prof. Dominik Grimm at TUM Campus Straubing. Under the assistance of PhD Student Jonathan Pirnay I was introduced into the basic concepts of Reinforcement Learning (RL) and Deep Q-Learning (DQL). After gainig knowdledge in this topics, i apllied it to solva a toy problem (\textit{Lunar Lander} Box2D environment) using \textit{Python} programming language. Using \textit{Gym} library, allowing usage of preexisting environments based of Atari 2600 games and other games used for testing DQN-Algorithms, I programmed my own an Deep Q-Algorithm. The main goal was to solve the environemnt of \textit{Lunar Lander}, i.e. achieving an average score of 200. This document summarizes what I have learned about both Reinforcement Learning and Deep Q-Learning, and describes their implementation with \textit{Python}.
+This document is the final report summarizing my work during my 6 week research internship at the Faculty of Bioinformatics led by Prof. Dominik Grimm at TUM Campus Straubing. Under the assistance of PhD Student Jonathan Pirnay I was introduced into the basic concepts of Reinforcement Learning (RL) and Deep Q-Learning (DQL). After gaining knowdledge in this topics, i apllied it to solve a toy problem (\textit{Lunar Lander} Box2D environment) using \textit{Python} programming language and \textit{Gym} library, allowing usage of preexisting environments based of Atari 2600 games and other games used for testing DQN-Algorithms. I programmed my own Deep Q-Algorithm which main goal was to solve the environment of \textit{Lunar Lander}, i.e. achieving an average score of 200 in last 100 episodes. This document summarizes what I have learned about both Reinforcement Learning and Deep Q-Learning, and describes their implementation with \textit{Python}.
 
 \newpage
 \section*{Introduction}
-CONTENT
+Sample text Sample text Sample text Sample text Sample text Sample text Sample text Sample text
+Sample text Sample text Sample text Sample text Sample text Sample text Sample text Sample text
+\\
 
 \section*{Methods}
 The main tool used to write the Deep Q-Algorithm was \textis{Python} with its libraries \textbf{PyTorch, Matplotlib, NumPy}, as well as functions \textit{deque()} and \textit{namedtuple()} from library \textbf{collections}
@@ -57,7 +59,7 @@ Loss function $\mathcal{L}$ is a squared difference of Q-target and the current 
 \subsection{Neural Networks - The \textit{Deep} of Q-Learning}
 Deep Q-Learning combines the usage of action-state function $Q^\pi$ to describe the state, in which our agent resides, with neural networks processing the input data through a complicated network of layered neurons. At the end, the neural network outputs an "answer" to the current state.
 
-\section{Gym Environment: Lunar Lander}
+\section{\textit{Lunar Lander} environment}
 Until now we considered the technicalities and theory governing the algorithm of an agent. In this section we will go in depth into the implementation of DQN. This part of the research internship consisted of using previously gained theoretical knowdledge of the subject, aswell as online resources (such as tutorials and official documentation of libraries) and applying them in \textit{Python}. Here, using libraries \textit{PyTorch} and \textit{Gym} (as well as other smaller ones, such as e.g. Matplotlib, NumPy), I programmed an Deep Q-Algorithm that was able to interact with a online distributed Box2D environment  \textit{Lunar Lander} and solve it, i.e. achieve an average score of 200 in past 100 episodes.
 
 \subsection{Description of the environment}
@@ -81,6 +83,7 @@ After the first iteration of the code was succesful in solving the environment, 
 
 \begin{table}[h]
 \caption{Iterations needed by DQN-Algorithm with specific layer sizes}
+\label{tab:table1}
 \centering
 \begin{tabular}{cc}
   \hline
@@ -91,9 +94,30 @@ After the first iteration of the code was succesful in solving the environment, 
   64 & 128 \\
   \hline
 \end{tabular}
-\label{tab:table1}
 \end{table}
 
 With the change of variables $x, y, z$ following was observed. Change in x did x1.
+
+\subsection*{Amount of hidden layers}
+The amount of hidden layers influenced the stability of the agent (i.e. the deviation from moving mean score and loss during the run) and amount of episodes until the environment got solved. During the first successful runs where 3 hidden layers were used, the average computation time totaled around 30 minutes and the number of episodes needed to solve the environment variated between 700 and 1100. After that, the amount of hidden layers was gradually increased by 1 and the agent was trained for 5 runs with all other variables remaining the same. Results were tablified in \ref{tab:hidden_layer}.
+
+\begin{table}[h]
+\caption{Influence of hidden layers in neural network on training time and episodes needed to solve the environment}
+\label{tab:hidden_layer}
+\centering
+\begin{tabluar}{ccc}
+  \hline
+  \textbf{Amount of hidden layers} & \textbf{Training time [min]} & \textbf{Last episode}
+  \hline
+  3 & 30 & ~900 \\
+  4 & 20 & ~600 \\
+  \hline
+\end{tabluar}
+\end{table}
+
+Usage of 4 hidden layers resulted in training time of ~20 minutes and number of episodes needed to solve the environment ranged from 500 to 800. Usage of 5 hidden layers resulted in training time of around x minutes and number of episodes needed to solve the environment ranged from
+
+\subsection*{Amount of neurons per hidden layer}
+The amount of neurons per hidden layer influenced X. During the first successful runs the amount of neurons per hidden layer equaled 64. After that the amount was gradually changed to powers of 2 beginning at 16 $(16,32,128,256)$. Results were tablified in X.
 
 \end{document}
