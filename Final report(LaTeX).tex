@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{amsmath}
 \usepackage{natbib}
+\usepackage{textcomp}
 
 \title{
   \textbf{
@@ -70,16 +71,27 @@ Using command \textit{import gym} and env = gym.make("LunarLander-v2") the envir
 \footnotetext{IDE used was PyCharm Community Edition}
 
 \subsubsection{Reward system}
-Reward and the choices of the agent are based on the action-value function \ref{eqn:bellman}
+Reward and the choices of the agent are based on the action-value function \ref{eqn:bellman}.
 
 \subsubsection{Defining the neural network \textit{class}}
 The neural network was divided
 
 \newpage
 \section*{Results and Discussion}
-Agent was able to solved the environment in x episodes.
+In the beginning, parameters set during the run (such as learning rate or $\epsilon$) were based on parameters found in code online. After unsuccsessful runs these parameteres were slowly changed in order to improve agents policy. During the first consistent and successful runs the agent was able to solve the environment from 800 to 1200 episodes. Parameters used during these runs are tablified in \ref{tab:x} and will be later referred to as "standard variables".
 
-After the first iteration of the code was succesful in solving the environment, some of the parameters were changed during the subsequent runs. For every run the same statistics were noted and new behaviour of the agent observed.
+After the agent could consistently solve the environment in 5 subsequent runs, one of the parameters were changed during the later runs and its influence on the agent, score and loss was noted. In the subsections below detailed influence of these parameters is described.
+
+\subsection*{Behaviours of the agent during training}
+In order to solve the environment and maximize the reward from given episode the agent tried multiple tactics. First was hovering with the lunar lander directly or high above the landing area, then slowly descending onto the designated area. Second, dropping fast towards the ground while not breaking the lander, then using one of the engines on the side to push the lander towards the landing area. Third (and the one resembling human-like play-style), slowing down from the initial state and descending in a swing-like motion towards the landing area.
+
+During multiple training cycles the agent showed similar behaviours, which resulted in achieving lower scores, such as not slowing down enough from the starting condition and crashing the lander into the ground, rolling the lander over, not solving the environment in given time (steps), not turning the engines off while on the landing platform or getting out of environments bounds, thus either finishing the episode (in the case of crashing and rolling over) or achieving a huge negative score.
+
+\subsection*{Importing of state dictionary from previous runs}
+Importing state dictionaries from neural networks of trained agents to an untrained agent significantly increased the stability of both scores gained by the untrained agent and of the loss function during the run. Also, the agent solved the environment in a much smaller amount of episodes (around 450) then during runs where agent had to learn the environment by itself. The difference between local and target networks casues a huge spike of loss function in the begining of the run, with steady decrease afterwards.
+
+\subsection*{Amount of hidden layers}
+The amount of hidden layers influenced the stability of the agent (i.e. the deviation from moving mean score and loss during the run) and lowered the amount of episodes needed until the environment got solved. During the first successful runs where 3 hidden layers were used, the average computation time totaled around 30 minutes and the number of episodes needed to solve the environment variated between 700 and 1100. After that, the amount of hidden layers was gradually increased by 1 and the agent was trained for 5 runs with all other variables remaining the same. Results were tablified in \ref{tab:hidden_layer}.
 
 \begin{table}[h]
 \caption{Iterations needed by DQN-Algorithm with specific layer sizes}
@@ -97,9 +109,6 @@ After the first iteration of the code was succesful in solving the environment, 
 \end{table}
 
 With the change of variables $x, y, z$ following was observed. Change in x did x1.
-
-\subsection*{Amount of hidden layers}
-The amount of hidden layers influenced the stability of the agent (i.e. the deviation from moving mean score and loss during the run) and amount of episodes until the environment got solved. During the first successful runs where 3 hidden layers were used, the average computation time totaled around 30 minutes and the number of episodes needed to solve the environment variated between 700 and 1100. After that, the amount of hidden layers was gradually increased by 1 and the agent was trained for 5 runs with all other variables remaining the same. Results were tablified in \ref{tab:hidden_layer}.
 
 \begin{table}[h]
 \caption{Influence of hidden layers in neural network on training time and episodes needed to solve the environment}
@@ -119,5 +128,8 @@ Usage of 4 hidden layers resulted in training time of ~20 minutes and number of 
 
 \subsection*{Amount of neurons per hidden layer}
 The amount of neurons per hidden layer influenced X. During the first successful runs the amount of neurons per hidden layer equaled 64. After that the amount was gradually changed to powers of 2 beginning at 16 $(16,32,128,256)$. Results were tablified in X.
+
+\subsection*{Epsilon, its minimal value and decay}
+TXT
 
 \end{document}

@@ -1,5 +1,4 @@
 import random
-import time
 import numpy as np
 import torch
 import torch.nn as nn
@@ -26,9 +25,7 @@ class DNNetwork(nn.Module):
         self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
         self.lin2 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
         self.lin3 = nn.Linear(layer_size,layer_size)
-        self.lin4 = nn.Linear(layer_size,layer_size)
-        self.lin5 = nn.Linear(layer_size, layer_size)
-        self.lin6 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
+        self.lin4 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
         self.to(device)
 
         ### For CNNs
@@ -39,9 +36,7 @@ class DNNetwork(nn.Module):
         x = F.relu( self.lin1(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
         x = F.relu( self.lin2(x) )
         x = F.relu( self.lin3(x) )
-        x = F.relu( self.lin4(x) )
-        x = F.relu( self.lin5(x) )
-        action_set = self.lin6(x)
+        action_set = self.lin4(x)
         return action_set
 
 ### Defining replay memory
@@ -148,7 +143,7 @@ def run_agent(episodes=2000, play_time=1000):
             score += reward
             if terminated or truncated:
                 break
-        agent.eps = max(EPS_END,EPS_DEC*agent.eps)  # update eps
+        agent.eps = max(EPS_END, EPS_DEC*agent.eps)     # update eps
 
         scores.append(score)
         loss.append( int(agent.loss) )
@@ -156,14 +151,15 @@ def run_agent(episodes=2000, play_time=1000):
         last_loss.append( int(agent.loss) )
 
         if episode % 50 == 0:
-            print("Running episode %s. Currently averaged score: %.2f" % (episode, np.mean(last_scores)) )
-            print('Loss average = %s' % np.mean(last_loss))
-            if agent.eps >= EPS_END:
-                print('Eps = %s' % (agent.eps))
+            print( "Running episode %s. Currently averaged score: %.2f" % (episode, np.mean(last_scores)) )
+            print( 'Loss average = %s' % np.mean(last_loss) )
+            if agent.eps > EPS_END:
+                print('Eps = %s' % agent.eps)
 
         if np.mean(last_scores) >= 200.0:
             print("\nEnvironment solved! Training done in %s episodes." % episode)
-            print('Loss average = %s' % np.mean(last_loss))
+            print( 'Loss average = %s' % np.mean(last_loss) )
+            # torch.save(agent.qnet_local.state_dict(), 'Diagnostics/Using state dictionary from previous runs/state_dict3.pt')
             env.close()
             break
 
@@ -182,7 +178,12 @@ EPS_END = 1e-2
 EPS_DEC = 0.995
 
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
+
+### importing of state dictionary of already trained agent
+# agent.qnet_local.load_state_dict( torch.load('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Using state dictionary from previous runs/state_dict.pt') )
+# agent.qnet_local.eval()
+
 scores, loss, last_episode = run_agent()
 print(scores)
 print(loss)
-diagnose(scores, loss, last_episode)# print( agent.qnet_target.parameters() )
+diagnose(scores, loss, last_episode)

@@ -107,26 +107,29 @@ from collections import deque, namedtuple
 # print( torch.max(TT, dim=1)[0] )
 
 ##### Gym
-# env = gym.make("LunarLander-v2", render_mode="human")
-#
+import gym
+env = gym.make("LunarLander-v2")
+
 # observation, info = env.reset(seed=0)
 # print(observation, "\n", info)
-#
-# for runs in range(200):
-#     observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
-#     # print("Obs: %s\nr = %s\nTerm: %s\nTrunc: %s\nInfo: %s"%(observation,reward,terminated,truncated,info))
-#
-#     if terminated:
-#         observation, info = env.reset()
+
+for runs in range(3):
+    env.reset()
+    for i in range(1000):
+        observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
+        # print("Obs: %s\nr = %s\nTerm: %s\nTrunc: %s\nInfo: %s"%(observation,reward,terminated,truncated,info))
+
+        if terminated:
+            break
 
 ### multiplying tensors
-T1 = torch.tensor(np.eye(5))
-print(T1)
-for i in range(5):
-    for j in range(5):
-        T1[i] = j
-print(T1.size())
-T2 = torch.tensor([1,2,3,4,5])#.unsqueeze(1)
-print(1 - T2)
-T3 = T1 * T2
-print(T3.size(), T3)
+# T1 = torch.tensor(np.eye(5))
+# print(T1)
+# for i in range(5):
+#     for j in range(5):
+#         T1[i] = j
+# print(T1.size())
+# T2 = torch.tensor([1,2,3,4,5])#.unsqueeze(1)
+# print(1 - T2)
+# T3 = T1 * T2
+# print(T3.size(), T3)
