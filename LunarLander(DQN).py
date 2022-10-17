@@ -175,7 +175,7 @@ BATCH_SIZE = 100
 LR = 2.5e-4
 EPS = 1.0
 EPS_END = 1e-2
-EPS_DEC = 0.9975
+EPS_DEC = 0.999
 
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
 
