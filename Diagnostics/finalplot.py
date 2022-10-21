@@ -1,11 +1,10 @@
 import math
-
 import numpy as np
 import data as d
 from matplotlib import pyplot as mpl
 from collections import deque
 
-def lin_var_plot(matrices, labels, title="NO_TITLE_GIVEN"):
+def lin_var_plot(matrices, labels, title="", smooth=True):
     # input an iterable of matrices to diagnose
     mpl.figure()
     for matrix in matrices:
@@ -33,11 +32,21 @@ def lin_var_plot(matrices, labels, title="NO_TITLE_GIVEN"):
             temp1 = []
             temp2 = []
 
-        # redefine means as a moving average of last 100 values
-        moving_avg = deque(maxlen=100)
-        for i in range(matrix_width):
-            moving_avg.append(means[i])
-            means[i] = np.mean(moving_avg)
+        # smooths the plot with moving average
+        if smooth == True:
+            # redefine means as a moving average of last 100 values
+            moving_avg = deque(maxlen=100)
+            for i in range(matrix_width):
+                moving_avg.append(means[i])
+                means[i] = np.mean(moving_avg)
+
+            # redefine standard deviation (sdevs) as moving average of last 100 values
+            moving_sdev = deque(maxlen=100)
+            for i in range(matrix_width):
+                moving_sdev.append(sdevs[i])
+                sdevs[i] = np.mean(moving_sdev)
+        else:
+            pass
 
         # define the position of the contours
         top = []
@@ -55,7 +64,6 @@ def lin_var_plot(matrices, labels, title="NO_TITLE_GIVEN"):
     mpl.legend(labels=labels, loc = 'lower right')
     mpl.show()
 
-
 ### selective plotting
 # comparison untrained vs imported state_dict
 # labels = ('Untrained','Trained')
@@ -64,8 +72,8 @@ def lin_var_plot(matrices, labels, title="NO_TITLE_GIVEN"):
 
 # amount of hidden layers comparison
 # labels = ('3 hidden layers', '4 hidden layers', '5 hidden layers')
-# lin_var_plot( [d.M_n2_s, d.M_hl4_s, d.M_hl5_s], labels, title='Moving score average across different hidden layer sizes' )
-# lin_var_plot( [d.M_n2_l, d.M_hl4_l, d.M_hl5_l], labels, title='Moving loss average across different hidden layer sizes')
+# lin_var_plot( [d.M_n2_s, d.M_hl4_s, d.M_hl5_s], labels, title='Moving score average with different hidden layer sizes')
+# lin_var_plot( [d.M_n2_l, d.M_hl4_l, d.M_hl5_l], labels, title='Moving loss average with different hidden layer sizes')
 
 # amount of neurons comparison
 # labels = ('32 neurons', '64 neurons', '128 neurons', '256 neurons')
