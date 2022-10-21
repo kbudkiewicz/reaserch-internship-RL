@@ -41,7 +41,7 @@ import numpy as np
 # mpl.errorbar(x, li1, yerr=sdevs)
 # mpl.show()
 
-### fill_between()
+### fill_between() - allows for plotting areas (e.g. between average and variance lines)
 # x = [0,1,2,3]
 # y = [12.,13.,15.,21.]
 # y1 = [12.1,13.1,15.1,21.1]
@@ -56,3 +56,19 @@ import numpy as np
 # mpl.fill_between(x,j1,j2, alpha=0.5)
 # mpl.plot(x,j)
 # mpl.show()
+
+### testing calculations with None Type
+# l = 1+None
+# print(l)
+# m = np.mean(l)
+# print(m)
+
+lis = [1,2,None,6]
+stack = []
+for i in lis:
+    if i == None:
+        continue
+    else:
+        stack.append(i)
+print(stack)
+print( np.mean(stack) )
