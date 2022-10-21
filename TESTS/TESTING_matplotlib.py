@@ -57,18 +57,51 @@ import numpy as np
 # mpl.plot(x,j)
 # mpl.show()
 
-### testing calculations with None Type
+### testing calculations with None and False Type
 # l = 1+None
 # print(l)
 # m = np.mean(l)
 # print(m)
 
 lis = [1,2,None,6]
+M = np.eye(4)
+M[0] = lis
+M[1] = [0,1,12,0]
+M[2] = lis
 stack = []
-for i in lis:
-    if i == None:
-        continue
-    else:
-        stack.append(i)
-print(stack)
-print( np.mean(stack) )
+
+# print( type(M[0,0]))
+print( M )
+
+# for i in range(4):
+#     for j in range(4):
+#         if M[i,j] == False:
+#             continue
+#         else:
+#             stack.append(M[i, j])
+#     print( stack)
+#     print( np.mean(stack))
+#     stack = []
+
+### trying sorting out the None Type from the matrix
+print(np.mean([0,5,10]))
+print(np.var([0,5,10]))
+print(np.sqrt(np.var([0,5,10])))
+
+import math
+means = []
+vars = []
+temp1 = []
+temp2 = []
+for i in range(4):
+    for j in range(4):
+        if math.isnan(M[j,i]) == True:
+            continue
+        else:
+            temp1.append(M[j,i])
+            temp2.append(M[j,i])
+    means.append(np.mean(temp1))
+    vars.append(np.var(temp2))
+    temp1 = []
+    temp2 = []
+print(means, '\n',vars)

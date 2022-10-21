@@ -1,4 +1,31 @@
-from finalplot import into_matrix
+import numpy as np
+
+def into_matrix(*args):
+    # input is a tuple of lists (*args) from each run
+    # find the maximum length
+    amount = len(args)
+    l = []
+    for i in range(amount):
+        l.append( len(args[i]) )
+    # min_len = l[np.argmin(l)]
+    # matrix = np.eye(amount, min_len)
+
+    # with max_length
+    max_len = l[np.argmax(l)]
+    matrix = np.eye(amount, max_len)
+
+    # extend shorter lists with None
+    for i in range(amount):
+        if len( args[i] ) < max_len:
+            while len( args[i] ) < max_len:
+                args[i].append(None)
+
+    # append each list to the matrix
+    for i in range(amount):
+        # matrix[i, :] = args[i][0:min_len]
+        matrix[i, :] = args[i][0:max_len]
+
+    return matrix
 
 ### scores of neuron testing
 # imported state_dict

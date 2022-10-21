@@ -1,35 +1,11 @@
+import math
+
 import numpy as np
+import data as d
 from matplotlib import pyplot as mpl
 from collections import deque
-import data as d
 
-def into_matrix(*args):
-    # input is a tuple of lists (*args) from each run
-    # find the maximum length
-    amount = len(args)
-    l = []
-    for i in range(amount):
-        l.append( len(args[i]) )
-    min_len = l[np.argmin(l)]
-    # matrix = np.eye(amount, min_len)
-
-    # with max_length
-    max_len = l[np.argmax(l)]
-    matrix = np.eye(amount, max_len)
-
-    for i in range(amount):
-        if len( args[i] ) < max_len:
-            while len( args[i] ) < max_len:
-                args[i].append(None)
-
-    # append each list to the matrix
-    for i in range(amount):
-        # matrix[i, :] = args[i][0:min_len]
-        matrix[i, :] = args[i][0:max_len]
-
-    return matrix
-
-def lin_var_plot(matrices, labels, title="NO_TITLE_FOUND"):
+def lin_var_plot(matrices, labels, title="NO_TITLE_GIVEN"):
     # input an iterable of matrices to diagnose
     mpl.figure()
     for matrix in matrices:
@@ -43,12 +19,19 @@ def lin_var_plot(matrices, labels, title="NO_TITLE_FOUND"):
         # extract data and calculate means and standard deviations at each column
         means = []
         sdevs = []
+        temp1 = []
+        temp2 = []
         for i in range(matrix_width):
-            if matrix[:,i].any() == None:
-                continue
-            else:
-                means.append( np.mean(matrix[:,i]) )
-                sdevs.append( np.sqrt(np.var(matrix[:,i])) )
+            for j in range(5):
+                if math.isnan(matrix[j,i]) == True:
+                    pass
+                else:
+                    temp1.append(matrix[j,i])
+                    temp2.append(matrix[j,i])
+            means.append( np.mean(temp1) )
+            sdevs.append( np.sqrt(np.var(temp2)))
+            temp1 = []
+            temp2 = []
 
         # redefine means as a moving average of last 100 values
         moving_avg = deque(maxlen=100)
@@ -80,8 +63,8 @@ def lin_var_plot(matrices, labels, title="NO_TITLE_FOUND"):
 # lin_var_plot( [d.M_n2_l, d.M_sd_l], labels )
 
 # amount of hidden layers comparison
-labels = ('3 hidden layers', '4 hidden layers', '5 hidden layers')
-lin_var_plot( [d.M_n2_s, d.M_hl4_s, d.M_hl5_s], labels, title='Moving score average across different hidden layer sizes' )
+# labels = ('3 hidden layers', '4 hidden layers', '5 hidden layers')
+# lin_var_plot( [d.M_n2_s, d.M_hl4_s, d.M_hl5_s], labels, title='Moving score average across different hidden layer sizes' )
 # lin_var_plot( [d.M_n2_l, d.M_hl4_l, d.M_hl5_l], labels, title='Moving loss average across different hidden layer sizes')
 
 # amount of neurons comparison
