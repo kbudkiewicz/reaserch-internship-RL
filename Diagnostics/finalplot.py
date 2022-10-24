@@ -81,6 +81,11 @@ def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=Tru
 # lin_var_plot([d.M_n1_l, d.M_n2_l, d.M_n3_l, d.M_n4_l], labels, title='Moving loss average across different neuron amount', legend_loc='upper right')
 
 # epsilon comparison
-# labels = ('epsilon = 0.995','epsilon = 0.9975','epsilon = 0.999')
+# labels = ('eps_decay = 0.995','eps_decay = 0.9975','eps_decay = 0.999')
 # lin_var_plot([d.M_e995_s, d.M_e9975_s, d.M_e999_s], labels, legend_loc='lower right')
 # lin_var_plot([d.M_e995_l, d.M_e9975_l, d.M_e999_l], labels, legend_loc='upper right')
+
+# learning rate comparison
+labels = ('lr = 2.5e-4', 'lr = 5e-4')
+lin_var_plot([d.M_n2_s, d.M_lr5_s], labels, legend_loc='lower right')
+lin_var_plot([d.M_n2_l, d.M_lr5_l], labels, legend_loc='upper right')
