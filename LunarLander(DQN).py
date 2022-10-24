@@ -169,10 +169,10 @@ def run_agent(episodes=2000, play_time=1000):
 GAMMA = 0.99
 TAU = 2.5e-3
 NET_UPDATE = 6
-LAYER_SIZE = 256
+LAYER_SIZE = 64
 MEMORY_SIZE = 100000
 BATCH_SIZE = 100
-LR = 2.5e-4
+LR = 5e-4
 EPS = 1.0
 EPS_END = 1e-2
 EPS_DEC = 0.995

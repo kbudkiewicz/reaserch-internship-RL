@@ -4,7 +4,7 @@ import data as d
 from matplotlib import pyplot as mpl
 from collections import deque
 
-def lin_var_plot(matrices, labels, title="", smooth=True):
+def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=True):
     # input an iterable of matrices to diagnose
     mpl.figure()
     for matrix in matrices:
@@ -61,26 +61,26 @@ def lin_var_plot(matrices, labels, title="", smooth=True):
     mpl.title(title)
     mpl.xlabel('Episode #')
     mpl.ylabel('Averaged score at given episode')
-    mpl.legend(labels=labels, loc = 'lower right')
+    mpl.legend(labels=labels, loc = legend_loc)
     mpl.show()
 
 ### selective plotting
 # comparison untrained vs imported state_dict
 # labels = ('Untrained','Trained')
-# lin_var_plot( [d.M_n2_s, d.M_sd_s], labels)
-# lin_var_plot( [d.M_n2_l, d.M_sd_l], labels )
+# lin_var_plot( [d.M_n2_s, d.M_sd_s], labels, legend_loc='lower right')
+# lin_var_plot( [d.M_n2_l, d.M_sd_l], labels, legend_loc='upper right')
 
 # amount of hidden layers comparison
 # labels = ('3 hidden layers', '4 hidden layers', '5 hidden layers')
-# lin_var_plot( [d.M_n2_s, d.M_hl4_s, d.M_hl5_s], labels, title='Moving score average with different hidden layer sizes')
-# lin_var_plot( [d.M_n2_l, d.M_hl4_l, d.M_hl5_l], labels, title='Moving loss average with different hidden layer sizes')
+# lin_var_plot( [d.M_n2_s, d.M_hl4_s, d.M_hl5_s], labels, title='Moving score average with different hidden layer sizes', legend_loc='lower right')
+# lin_var_plot( [d.M_n2_l, d.M_hl4_l, d.M_hl5_l], labels, title='Moving loss average with different hidden layer sizes', legend_loc='upper right')
 
 # amount of neurons comparison
 # labels = ('32 neurons', '64 neurons', '128 neurons', '256 neurons')
-# lin_var_plot([d.M_n1_s, d.M_n2_s, d.M_n3_s, d.M_n4_s], labels, title='Moving score average across different neuron amount')
-# lin_var_plot([d.M_n1_l, d.M_n2_l, d.M_n3_l, d.M_n4_l], labels, title='Moving loss average across different neuron amount')
+# lin_var_plot([d.M_n1_s, d.M_n2_s, d.M_n3_s, d.M_n4_s], labels, title='Moving score average across different neuron amount', legend_loc='lower right')
+# lin_var_plot([d.M_n1_l, d.M_n2_l, d.M_n3_l, d.M_n4_l], labels, title='Moving loss average across different neuron amount', legend_loc='upper right')
 
 # epsilon comparison
 # labels = ('epsilon = 0.995','epsilon = 0.9975','epsilon = 0.999')
-# lin_var_plot([d.M_e995_s, d.M_e9975_s, d.M_e999_s], labels)
-# lin_var_plot([d.M_e995_l, d.M_e9975_l, d.M_e999_l], labels)
+# lin_var_plot([d.M_e995_s, d.M_e9975_s, d.M_e999_s], labels, legend_loc='lower right')
+# lin_var_plot([d.M_e995_l, d.M_e9975_l, d.M_e999_l], labels, legend_loc='upper right')
