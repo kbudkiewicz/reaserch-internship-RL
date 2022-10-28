@@ -86,6 +86,6 @@ def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=Tru
 # lin_var_plot([d.M_e995_l, d.M_e9975_l, d.M_e999_l], labels, legend_loc='upper right')
 
 # learning rate comparison
-labels = ('lr = 2.5e-4', 'lr = 5e-4')
-lin_var_plot([d.M_n2_s, d.M_lr5_s], labels, legend_loc='lower right')
-lin_var_plot([d.M_n2_l, d.M_lr5_l], labels, legend_loc='upper right')
+labels = ('lr = 1e-4','lr = 2.5e-4', 'lr = 5e-4')
+lin_var_plot([d.M_lr1_s, d.M_n2_s, d.M_lr5_s], labels, legend_loc='lower right')
+lin_var_plot([d.M_lr1_l, d.M_n2_l, d.M_lr5_l], labels, legend_loc='upper right')
