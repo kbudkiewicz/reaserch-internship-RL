@@ -1,6 +1,7 @@
 import math
 import numpy as np
-import data as d
+import data1 as d
+import data2 as d2
 from matplotlib import pyplot as mpl
 from collections import deque
 
@@ -64,28 +65,31 @@ def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=Tru
     mpl.legend(labels=labels, loc = legend_loc)
     mpl.show()
 
-### selective plotting
+### plots of exponential eps-decay
 # comparison untrained vs imported state_dict
-labels = ('Untrained','Trained')
-lin_var_plot( [d.M_n2_s, d.M_sd_s], labels, legend_loc='lower right')
-lin_var_plot( [d.M_n2_l, d.M_sd_l], labels, legend_loc='upper right')
+# labels = ('Untrained','Trained')
+# lin_var_plot( [d.M_n2_s, d.M_sd_s], labels, legend_loc='lower right')
+# lin_var_plot( [d.M_n2_l, d.M_sd_l], labels, legend_loc='upper right')
 
 # amount of hidden layers comparison
-labels = ('3 hidden layers', '4 hidden layers', '5 hidden layers')
-lin_var_plot( [d.M_n2_s, d.M_hl4_s, d.M_hl5_s], labels, title='Moving score average with different hidden layer sizes', legend_loc='lower right')
-lin_var_plot( [d.M_n2_l, d.M_hl4_l, d.M_hl5_l], labels, title='Moving loss average with different hidden layer sizes', legend_loc='upper right')
+# labels = ('3 hidden layers', '4 hidden layers', '5 hidden layers')
+# lin_var_plot( [d.M_n2_s, d.M_hl4_s, d.M_hl5_s], labels, title='Moving score average with different hidden layer sizes', legend_loc='lower right')
+# lin_var_plot( [d.M_n2_l, d.M_hl4_l, d.M_hl5_l], labels, title='Moving loss average with different hidden layer sizes', legend_loc='upper right')
 
 # amount of neurons comparison
-labels = ('32 neurons', '64 neurons', '128 neurons', '256 neurons')
-lin_var_plot([d.M_n1_s, d.M_n2_s, d.M_n3_s, d.M_n4_s], labels, title='Moving score average across different neuron amount', legend_loc='lower right')
-lin_var_plot([d.M_n1_l, d.M_n2_l, d.M_n3_l, d.M_n4_l], labels, title='Moving loss average across different neuron amount', legend_loc='upper right')
+# labels = ('32 neurons', '64 neurons', '128 neurons', '256 neurons')
+# lin_var_plot([d.M_n1_s, d.M_n2_s, d.M_n3_s, d.M_n4_s], labels, title='Moving score average across different neuron amount', legend_loc='lower right')
+# lin_var_plot([d.M_n1_l, d.M_n2_l, d.M_n3_l, d.M_n4_l], labels, title='Moving loss average across different neuron amount', legend_loc='upper right')
 
 # epsilon comparison
-labels = ('eps_decay = 0.995','eps_decay = 0.9975','eps_decay = 0.999')
-lin_var_plot([d.M_e995_s, d.M_e9975_s, d.M_e999_s], labels, legend_loc='lower right')
-lin_var_plot([d.M_e995_l, d.M_e9975_l, d.M_e999_l], labels, legend_loc='upper right')
+# labels = ('eps_decay = 0.995','eps_decay = 0.9975','eps_decay = 0.999')
+# lin_var_plot([d.M_e995_s, d.M_e9975_s, d.M_e999_s], labels, legend_loc='lower right')
+# lin_var_plot([d.M_e995_l, d.M_e9975_l, d.M_e999_l], labels, legend_loc='upper right')
 
 # learning rate comparison
-labels = ('lr = 1e-4','lr = 2.5e-4', 'lr = 5e-4')
-lin_var_plot([d.M_lr1_s, d.M_n2_s, d.M_lr5_s], labels, legend_loc='lower right')
-lin_var_plot([d.M_lr1_l, d.M_n2_l, d.M_lr5_l], labels, legend_loc='upper right')
+# labels = ('lr = 1e-4','lr = 2.5e-4', 'lr = 5e-4')
+# lin_var_plot([d.M_lr1_s, d.M_n2_s, d.M_lr5_s], labels, legend_loc='lower right')
+# lin_var_plot([d.M_lr1_l, d.M_n2_l, d.M_lr5_l], labels, legend_loc='upper right')
+
+### plots of linear eps-decay
+
