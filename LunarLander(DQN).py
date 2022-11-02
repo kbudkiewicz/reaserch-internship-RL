@@ -22,8 +22,9 @@ class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
         super(DNNetwork,self).__init__()                # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
         self.layer_size = layer_size
-        self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
-        self.lin2 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
+        self.lin0 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
+        self.lin1 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
+        self.lin2 = nn.Linear(layer_size,layer_size)
         self.lin3 = nn.Linear(layer_size,layer_size)
         self.lin4 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
         self.to(device)
@@ -33,9 +34,9 @@ class DNNetwork(nn.Module):
         # kernel_size   size of the tensor/matrix filter between convolutional layers
 
     def forward(self,state):
-        x = F.relu( self.lin1(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
+        x = F.relu( self.lin0(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
+        x = F.relu( self.lin1(x) )
         x = F.relu( self.lin2(x) )
-        x = F.relu( self.lin3(x) )
         action_set = self.lin4(x)
         return action_set
 
@@ -123,12 +124,30 @@ class Agent:
         for target_param, local_param in zip( self.qnet_target.parameters(), self.qnet_local.parameters() ):
             target_param.data.copy_( self.tau*local_param.data + (1.-self.tau)*target_param.data )
 
+def calc_eps(current_episode, eps_start, eps_end, eps_term):
+    # calculation of epsilon based on a linear function
+    slope = (eps_end - eps_start) / eps_term
+    eps = slope * current_episode + eps_start
+    return eps
+
 ### Training
 def run_agent(episodes=2000, play_time=1000):
     # print statement returns currently used variables
-    print( '| Variables during this run |\n'+ 60*'-' + '\n%s\t\t# of Episodes\n%s\t\tPlay time\n%s\t\t\tNN\' hidden layer size\n%s\t\t\tNetwork update'
-           '\n%s\t\tAgents memory size\n%s\t\t\tMemory batch size\n%s\t\tTau\n%s\t\tGamma\n%s\t\tLearning rate\n'
-           % (episodes,play_time,LAYER_SIZE,NET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR)  + 60*'-' )
+    print(  '| Variables during this run |\n'+ 60*'-' +
+            '\n%s\t\t# of Episodes\n'
+            '%s\t\tPlay time\n'
+            '%s\t\t\tNN\' hidden layer size\n'
+            '%s\t\t\tNetwork update\n'
+            '%s\t\tAgents memory size\n'
+            '%s\t\t\tMemory batch size\n'
+            '%s\t\tTau\n'
+            '%s\t\tGamma\n'
+            '%s\t\tLearning rate\n'
+            '%s\t\t\tEpsilon start\n'
+            '%s\t\tEpsilon end\n'
+            '%s\t\tEpsilon termination\n'
+            % (episodes,play_time,LAYER_SIZE,NET_UPDATE,MEMORY_SIZE,BATCH_SIZE,TAU,GAMMA,LR,EPS_START,EPS_END,EPS_TERM)
+            + 60*'-' )
 
     scores, loss = [], []
     last_scores, last_loss = deque(maxlen=100), deque(maxlen=100)
@@ -143,7 +162,7 @@ def run_agent(episodes=2000, play_time=1000):
             score += reward
             if terminated or truncated:
                 break
-        agent.eps = max(EPS_END, EPS_DEC*agent.eps)     # update eps
+        agent.eps = max( EPS_END, calc_eps(episode,EPS_START,EPS_END,EPS_TERM) )         # recalculate current eps linearly
 
         scores.append(score)
         loss.append( int(agent.loss) )
@@ -172,12 +191,12 @@ NET_UPDATE = 6
 LAYER_SIZE = 64
 MEMORY_SIZE = 100000
 BATCH_SIZE = 100
-LR = 1e-4
-EPS = 1.0
+LR = 2.5e-4
+EPS_START = 1.0
 EPS_END = 1e-2
-EPS_DEC = 0.995
+EPS_TERM = 1000        # value at which EPS_END will be achieved
 
-agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS)
+agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS_START)
 
 ### importing of state dictionary of already trained agent
 # agent.qnet_local.load_state_dict( torch.load('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Using state dictionary from previous runs/state_dict.pt') )
