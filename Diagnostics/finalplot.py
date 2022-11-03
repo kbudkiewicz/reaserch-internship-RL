@@ -92,4 +92,12 @@ def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=Tru
 # lin_var_plot([d.M_lr1_l, d.M_n2_l, d.M_lr5_l], labels, legend_loc='upper right')
 
 ### plots of linear eps-decay
+# eps start comparison
+# labels = ('eps_start = 1')
+# lin_var_plot([d2.M_lin1_s], labels, legend_loc="lower right")
+# lin_var_plot([d2.M_lin1_l], labels, legend_loc="upper right")
 
+# learning rate comparison
+labels = ('lr = 2.5e-4','lr = 5e-4', 'lr = 1e-3')
+lin_var_plot([d2.M_lin1_s, d2.M_lr54_s, d2.M_lr13_s], labels, legend_loc='lower right')
+lin_var_plot([d2.M_lin1_l, d2.M_lr54_l, d2.M_lr13_l], labels, legend_loc='upper right')

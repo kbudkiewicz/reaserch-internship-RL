@@ -16,15 +16,14 @@ else:
 print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
-env = gym.make("LunarLander-v2")
+env = gym.make("LunarLander-v2", render_mode='human')
 
 class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
         super(DNNetwork,self).__init__()                # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
         self.layer_size = layer_size
-        self.lin0 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
-        self.lin1 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
-        self.lin2 = nn.Linear(layer_size,layer_size)
+        self.lin1 = nn.Linear(8,layer_size)             # input (here 8) corresponds to the size of observation space
+        self.lin2 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
         self.lin3 = nn.Linear(layer_size,layer_size)
         self.lin4 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
         self.to(device)
@@ -34,9 +33,9 @@ class DNNetwork(nn.Module):
         # kernel_size   size of the tensor/matrix filter between convolutional layers
 
     def forward(self,state):
-        x = F.relu( self.lin0(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
-        x = F.relu( self.lin1(x) )
+        x = F.relu( self.lin1(state) )               # ReLU - rectified linear unit. take max(0,input) of the input
         x = F.relu( self.lin2(x) )
+        x = F.relu( self.lin3(x) )
         action_set = self.lin4(x)
         return action_set
 
@@ -131,7 +130,7 @@ def calc_eps(current_episode, eps_start, eps_end, eps_term):
     return eps
 
 ### Training
-def run_agent(episodes=2000, play_time=1000):
+def run_agent(episodes=1500, play_time=1000):
     # print statement returns currently used variables
     print(  '| Variables during this run |\n'+ 60*'-' +
             '\n%s\t\t# of Episodes\n'
@@ -178,7 +177,7 @@ def run_agent(episodes=2000, play_time=1000):
         if np.mean(last_scores) >= 200.0:
             print("\nEnvironment solved! Training done in %s episodes." % episode)
             print( 'Loss average = %s' % np.mean(last_loss) )
-            # torch.save(agent.qnet_local.state_dict(), 'Diagnostics/Using state dictionary from previous runs/state_dict3.pt')
+            # torch.save(agent.qnet_local.state_dict(), 'Diagnostics/Linear epsilon decay/state_dict1.pt')
             env.close()
             break
 
@@ -191,15 +190,15 @@ NET_UPDATE = 6
 LAYER_SIZE = 64
 MEMORY_SIZE = 100000
 BATCH_SIZE = 100
-LR = 2.5e-4
-EPS_START = 1.0
-EPS_END = 1e-2
+LR = 1e-3
+EPS_START = 1
+EPS_END = 0.01
 EPS_TERM = 1000        # value at which EPS_END will be achieved
 
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS_START)
 
 ### importing of state dictionary of already trained agent
-# agent.qnet_local.load_state_dict( torch.load('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Using state dictionary from previous runs/state_dict.pt') )
+# agent.qnet_local.load_state_dict( torch.load('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Exponential epsilon decay/Using state dictionary from previous runs/state_dict.pt') )
 # agent.qnet_local.eval()
 
 scores, loss, last_episode = run_agent()
