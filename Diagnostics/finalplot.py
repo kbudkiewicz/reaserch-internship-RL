@@ -5,7 +5,7 @@ import data2 as d2
 from matplotlib import pyplot as mpl
 from collections import deque
 
-def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=True):
+def lin_var_plot(matrices, labels, ylab, title='', legend_loc='lower right',smooth=True):
     # input an iterable of matrices to diagnose
     mpl.figure()
     for matrix in matrices:
@@ -57,12 +57,12 @@ def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=Tru
             bottom.append( means[i]-sdevs[i] )
 
         mpl.fill_between(x, top, bottom, alpha=0.3, label='_nolegend_')
-        mpl.plot(x,means)
+        mpl.plot(x, means)
 
     mpl.title(title)
     mpl.xlabel('Episode #')
-    mpl.ylabel('Averaged score at given episode')
-    mpl.legend(labels=labels, loc = legend_loc)
+    mpl.ylabel(ylab)
+    mpl.legend(labels=labels, loc=legend_loc)
     mpl.show()
 
 ### plots of exponential eps-decay
@@ -103,11 +103,11 @@ def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=Tru
 # lin_var_plot( [], labels, legend_loc='upper right' )
 
 # eps term comparison
-# labels = ('Termination @ Episode #800', 'Termination @ Episode #1000', 'Termination @ Episode #1200', 'Termination @ Episode #1400')
-# lin_var_plot( [], labels, legend_loc='lower right' )
-# lin_var_plot( [], labels, legend_loc='upper right' )
+labels = ('Termination at episode 800', 'Termination at episode 1000', 'Termination at episode 1200', 'Termination at episode 1400')
+lin_var_plot( [d2.M_et800_s, d2.M_lin1_s, d2.M_et1200_s, d2.M_et1400_s], labels, ylab='Averaged score at given episode', legend_loc='lower right' )
+lin_var_plot( [d2.M_et800_l, d2.M_lin1_l, d2.M_et1200_l, d2.M_et1400_l], labels, ylab='Averaged loss at given episode',legend_loc='upper right' )
 
 # learning rate comparison
-labels = ('lr = 1e-3', 'lr = 5e-4','lr = 2.5e-4','lr = 1e-4', 'lr = 1e-5')
-lin_var_plot([d2.M_lr13_s, d2.M_lr54_s, d2.M_lin1_s, d2.M_lr14_s, d2.M_lr15_s], labels, legend_loc='lower right')
-lin_var_plot([d2.M_lr13_l, d2.M_lr54_l, d2.M_lin1_l, d2.M_lr14_l, d2.M_lr15_l], labels, legend_loc='upper right')
+# labels = ('lr = 1e-3', 'lr = 5e-4','lr = 2.5e-4','lr = 1e-4', 'lr = 1e-5')
+# lin_var_plot([d2.M_lr13_s, d2.M_lr54_s, d2.M_lin1_s, d2.M_lr14_s, d2.M_lr15_s], labels, ylab='Averaged score at given episode', legend_loc='lower right')
+# lin_var_plot([d2.M_lr13_l, d2.M_lr54_l, d2.M_lin1_l, d2.M_lr14_l, d2.M_lr15_l], labels, ylab='Averaged loss at given episode', legend_loc='upper right')
