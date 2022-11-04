@@ -93,11 +93,21 @@ def lin_var_plot(matrices, labels, title='', legend_loc='lower right',smooth=Tru
 
 ### plots of linear eps-decay
 # eps start comparison
-# labels = ('eps_start = 1')
-# lin_var_plot([d2.M_lin1_s], labels, legend_loc="lower right")
-# lin_var_plot([d2.M_lin1_l], labels, legend_loc="upper right")
+# labels = ('eps_start = 1', 'eps_start = 0.9', 'eps_start = 0.8', 'eps_start = 0.7')
+# lin_var_plot([d2.M_lin1_s], labels, legend_loc='lower right')
+# lin_var_plot([d2.M_lin1_l], labels, legend_loc='upper right')
+
+# eps end comparison
+# labels = ('eps_end = 0.01', 'eps_end = 0.025', 'eps_end = 0.05', 'eps_end = 0.075', 'eps_end = 0.1')
+# lin_var_plot( [], labels, legend_loc='lower right' )
+# lin_var_plot( [], labels, legend_loc='upper right' )
+
+# eps term comparison
+# labels = ('Termination @ Episode #800', 'Termination @ Episode #1000', 'Termination @ Episode #1200', 'Termination @ Episode #1400')
+# lin_var_plot( [], labels, legend_loc='lower right' )
+# lin_var_plot( [], labels, legend_loc='upper right' )
 
 # learning rate comparison
-labels = ('lr = 2.5e-4','lr = 5e-4', 'lr = 1e-3')
-lin_var_plot([d2.M_lin1_s, d2.M_lr54_s, d2.M_lr13_s], labels, legend_loc='lower right')
-lin_var_plot([d2.M_lin1_l, d2.M_lr54_l, d2.M_lr13_l], labels, legend_loc='upper right')
+labels = ('lr = 1e-3', 'lr = 5e-4','lr = 2.5e-4','lr = 1e-4', 'lr = 1e-5')
+lin_var_plot([d2.M_lr13_s, d2.M_lr54_s, d2.M_lin1_s, d2.M_lr14_s, d2.M_lr15_s], labels, legend_loc='lower right')
+lin_var_plot([d2.M_lr13_l, d2.M_lr54_l, d2.M_lin1_l, d2.M_lr14_l, d2.M_lr15_l], labels, legend_loc='upper right')

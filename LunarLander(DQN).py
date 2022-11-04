@@ -16,7 +16,7 @@ else:
 print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
-env = gym.make("LunarLander-v2", render_mode='human')
+env = gym.make("LunarLander-v2")    # render_mode='human'
 
 class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
@@ -190,16 +190,17 @@ NET_UPDATE = 6
 LAYER_SIZE = 64
 MEMORY_SIZE = 100000
 BATCH_SIZE = 100
-LR = 1e-3
+LR = 2.5e-4
 EPS_START = 1
 EPS_END = 0.01
-EPS_TERM = 1000        # value at which EPS_END will be achieved
+EPS_TERM = 800        # value at which EPS_END will be achieved
 
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS_START)
 
 ### importing of state dictionary of already trained agent
 # agent.qnet_local.load_state_dict( torch.load('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Exponential epsilon decay/Using state dictionary from previous runs/state_dict.pt') )
 # agent.qnet_local.eval()
+# if network variables are named differently in the dictionary and code then an error occurs -> same variable names so import can work properly
 
 scores, loss, last_episode = run_agent()
 print(scores)
