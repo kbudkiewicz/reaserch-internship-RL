@@ -93,9 +93,9 @@ def lin_var_plot(matrices, labels, ylab, title='', legend_loc='lower right',smoo
 
 ### plots of linear eps-decay
 # eps start comparison
-# labels = ('eps_start = 1', 'eps_start = 0.9', 'eps_start = 0.8', 'eps_start = 0.7')
-# lin_var_plot([d2.M_lin1_s], labels, legend_loc='lower right')
-# lin_var_plot([d2.M_lin1_l], labels, legend_loc='upper right')
+labels = ('eps_start = 1', 'eps_start = 0.9', 'eps_start = 0.8', 'eps_start = 0.7')
+lin_var_plot([d2.M_lin1_s, d2.M_es09_s, d2.M_es08_s, d2.M_es07_s], labels, ylab="Averaged score at given episode", legend_loc='lower right')
+lin_var_plot([d2.M_lin1_l, d2.M_es09_l, d2.M_es08_l, d2.M_es07_l], labels, ylab='Averaged loss at given episode', legend_loc='upper right')
 
 # eps end comparison
 # labels = ('eps_end = 0.01', 'eps_end = 0.025', 'eps_end = 0.05', 'eps_end = 0.075', 'eps_end = 0.1')
@@ -103,9 +103,9 @@ def lin_var_plot(matrices, labels, ylab, title='', legend_loc='lower right',smoo
 # lin_var_plot( [], labels, legend_loc='upper right' )
 
 # eps term comparison
-labels = ('Termination at episode 800', 'Termination at episode 1000', 'Termination at episode 1200', 'Termination at episode 1400')
-lin_var_plot( [d2.M_et800_s, d2.M_lin1_s, d2.M_et1200_s, d2.M_et1400_s], labels, ylab='Averaged score at given episode', legend_loc='lower right' )
-lin_var_plot( [d2.M_et800_l, d2.M_lin1_l, d2.M_et1200_l, d2.M_et1400_l], labels, ylab='Averaged loss at given episode',legend_loc='upper right' )
+# labels = ('Termination at episode 800', 'Termination at episode 1000', 'Termination at episode 1200', 'Termination at episode 1400')
+# lin_var_plot( [d2.M_et800_s, d2.M_lin1_s, d2.M_et1200_s, d2.M_et1400_s], labels, ylab='Averaged score at given episode', legend_loc='lower right' )
+# lin_var_plot( [d2.M_et800_l, d2.M_lin1_l, d2.M_et1200_l, d2.M_et1400_l], labels, ylab='Averaged loss at given episode',legend_loc='upper right' )
 
 # learning rate comparison
 # labels = ('lr = 1e-3', 'lr = 5e-4','lr = 2.5e-4','lr = 1e-4', 'lr = 1e-5')
