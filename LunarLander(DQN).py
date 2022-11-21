@@ -16,7 +16,7 @@ else:
 print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
-env = gym.make("LunarLander-v2")    # render_mode='human'
+env = gym.make("LunarLander-v2", render_mode="human")    # render_mode='human'
 
 class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
@@ -190,10 +190,10 @@ NET_UPDATE = 6
 LAYER_SIZE = 64
 MEMORY_SIZE = 100000
 BATCH_SIZE = 100
-LR = 2.5e-4
-EPS_START = 1
-EPS_END = 0.01
-EPS_TERM = 800        # value at which EPS_END will be achieved
+LR = 1e-3
+EPS_START = 0.7
+EPS_END = 0.05
+EPS_TERM = 1000        # value at which EPS_END will be achieved
 
 agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS_START)
 
