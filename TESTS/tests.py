@@ -46,14 +46,14 @@ from collections import deque, namedtuple
 # print(x)
 
 ### handling of PyTroch NN
-# N1 = nn.Linear(8, 32)
-# N2 = nn.Linear(32,4)
-# input = torch.from_numpy( gym.make('LunarLander-v2').reset()[0] )
-# print('State from reset environment:\n', input)
-# output = N1(input)
-# print('\nState run through NN:\n', output)
-# output = N2(output)
-# print(output)
+N1 = nn.Linear(8, 16)
+N2 = nn.Linear(16,4)
+input = torch.from_numpy( gym.make('LunarLander-v2').reset()[0] )
+print('State from reset environment:\n', input)
+output = N1(input)
+print('\nState in between the NN:\n', output)
+output = N2(output)
+print('\nOutput of the NN:\n', output)
 
 ### torch.from_numpy() - convert a numpy array into a torch.tensor()
 

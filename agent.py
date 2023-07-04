@@ -16,7 +16,7 @@ else:
 print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
-env = gym.make("LunarLander-v2", render_mode="human")    # render_mode='human'
+env = gym.make("LunarLander-v2", render_mode='human')    # render_mode='human'
 
 class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
@@ -70,11 +70,7 @@ class Agent:
         self.memory = Replay_memory(memory_size,batch_size)
         self.t_step = 0
 
-        l = []
-        for i in range(self.batch_size):
-            l.append(i)
-        self.list_size = l
-
+        self.list_size = [i for i in range(self.batch_size)]
         self.s_tens = torch.tensor( np.zeros((self.batch_size, 8)) ).float()
         self.a_tens = torch.tensor(self.list_size).unsqueeze(1).long()
         self.r_tens = torch.tensor(self.list_size).float()
@@ -195,14 +191,15 @@ EPS_START = 0.7
 EPS_END = 0.05
 EPS_TERM = 1000        # value at which EPS_END will be achieved
 
-agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS_START)
-
 ### importing of state dictionary of already trained agent
-# agent.qnet_local.load_state_dict( torch.load('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Exponential epsilon decay/Using state dictionary from previous runs/state_dict.pt') )
-# agent.qnet_local.eval()
+EPS_START, EPS_END = 0, 0
+agent = Agent(memory_size=MEMORY_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, learning_rate=LR, epsilon=EPS_START)
+agent.qnet_local.load_state_dict( torch.load('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Exponential epsilon decay/Using state dictionary from previous runs/state_dict.pt') )
+agent.qnet_local.eval()
+agent.qnet_target.load_state_dict( torch.load('C:/Users/kryst/Documents/GitHub/research-internship-RL/Diagnostics/Exponential epsilon decay/Using state dictionary from previous runs/state_dict.pt'))
 # if network variables are named differently in the dictionary and code then an error occurs -> same variable names so import can work properly
 
 scores, loss, last_episode = run_agent()
 print(scores)
 print(loss)
-diagnose(scores, loss, last_episode)
+# diagnose(scores, loss, last_episode)
