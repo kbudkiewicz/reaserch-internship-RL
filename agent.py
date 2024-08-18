@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import gym
 from collections import deque, namedtuple
-from Diagnostics.diagnostics import diagnose
+from diagnostics.diagnostics import diagnose
 
 ### Assigning the device
 if torch.cuda.is_available():
@@ -17,7 +17,7 @@ print("Current device: %s \n" % device.upper())
 
 ### Creating gym' Lunar Lander environment
 env = gym.make("LunarLander-v2", render_mode='human')    # render_mode='human'
-
+`
 class DNNetwork(nn.Module):
     def __init__(self,layer_size=64):                   # CNN not needed for research internship -> Linear layers, batchnormalisation not needed
         super(DNNetwork,self).__init__()                # super(superclass) - inherit the methods of the superclass (class above this one). Here: inherit all __init__ method of DQN
@@ -26,7 +26,6 @@ class DNNetwork(nn.Module):
         self.lin2 = nn.Linear(layer_size,layer_size)    # layer_size = amount of neurons between hidden layers
         self.lin3 = nn.Linear(layer_size,layer_size)
         self.lin4 = nn.Linear(layer_size,4)             # output (here 4) corresponds to the size of action space
-        self.to(device)
 
         ### For CNNs
         # stide         gives how much the filter is moved across the matrix (e.g. stride = 2 means: move the filter 2 indicies to the right of the matrix)
@@ -64,8 +63,8 @@ class Agent:
         self.eps = epsilon
         self.lr = learning_rate
         self.loss = 300
-        self.qnet_local = DNNetwork().to(device)
-        self.qnet_target = DNNetwork().to(device).eval()
+        self.qnet_local = DNNetwork()
+        self.qnet_target = DNNetwork().eval()
         self.optimizer = optim.Adam(self.qnet_local.parameters(), self.lr)    # huber loss as alternative?
         self.memory = Replay_memory(memory_size,batch_size)
         self.t_step = 0
