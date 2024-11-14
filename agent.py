@@ -11,38 +11,35 @@ from collections import deque, namedtuple
 memory = namedtuple('Memory', ('s', 'a', 'r', 'next_s', 'term'))
 
 
-class DNNetwork(nn.Module):
-    def __init__(self, layer_size=64):
-        # super(superclass) - inherit the methods of the superclass (class above this one).
-        # Here: inherit all __init__ method of DQN
-        super(DNNetwork, self).__init__()
-        self.layer_size = layer_size
-        # CNN not needed for research internship -> Linear layers, batch normalisation not needed
-        self.net = nn.Sequential(
-            nn.Linear(8, layer_size),   # input (here 8) corresponds to the size of observation space
-            nn.ReLU(),                          # ReLU - rectified linear unit. take max(0,input) of the input
-            nn.Linear(layer_size, layer_size),  # layer_size = amount of neurons between hidden layers
-            nn.ReLU(),
-            nn.Linear(layer_size, layer_size),
-            nn.ReLU(),
-            nn.Linear(layer_size, 4)    # output (here 4) corresponds to the size of action space
-        )
+class FeedForwardNetwork(nn.Module):
+    def __init__(self, *dims,
+                 activation: nn.Module = nn.ReLU(),
+                 regularizer: nn.Module = nn.Dropout(p=0.1)):
+        super().__init__()
+        self.dims = dims
+        self.module_list = nn.ModuleList()
+        self.activation = activation
+        self.regularizer = regularizer
 
-        ### For CNNs
-        # stride:    gives how much the filter is moved across the matrix
-        # (e.g. stride = 2 means: move the filter 2 indices to the right of the matrix)
-        # kernel_size   size of the tensor/matrix filter between convolutional layers
+        for idx in range(len(self.dims) - 2):
+            self.module_list.append(nn.Linear(self.dims[idx], self.dims[idx + 1]))
+            self.module_list.append(self.activation)
+            self.module_list.append(self.regularizer)
+        self.module_list.append(nn.Linear(dims[-2], dims[-1]))  # last layer without activation
+        self.module_list.append(self.regularizer)
+
+        self.net = nn.Sequential(*self.module_list)
 
     def forward(self, state):
         return self.net(state)
 
 
 class ReplayMemory(object):
-    def __init__(self, memory_size, batch_size):
+    def __init__(self, memory_size: int, batch_size: int):
         self.memory = deque(maxlen=memory_size)
         self.batch_size = batch_size
 
-    def remember(self, *args):  # *args: put any amount of arguments into the function
+    def remember(self, *args):
         self.memory.append(memory(*args))
 
     def get_sample(self):
@@ -53,7 +50,8 @@ class ReplayMemory(object):
 
 
 class Agent:
-    def __init__(self, hparams):
+    def __init__(self, hparams: dict):
+        self.config = None
         self.state_size = 8
         self.action_size = 4
         self.memory_size = hparams['memory_size']
@@ -66,12 +64,12 @@ class Agent:
         self.eps_term = hparams['eps_term']
         self.lr = hparams['lr']
         self.loss = 0
-        self.net_update = hparams['net_update']
-        self.qnet_local = DNNetwork()
-        self.qnet_target = DNNetwork().eval()
-        self.optimizer = optim.Adam(self.qnet_local.parameters(), self.lr)    # huber loss as alternative?
-        self.memory = ReplayMemory(self.memory_size, self.batch_size)
         self.t_step = 0
+        self.net_update_freq = hparams['net_update']
+        self.qnet_local = FeedForwardNetwork(8,64,64,4)
+        self.qnet_target = FeedForwardNetwork(8,64,64,4).eval()
+        self.optimizer = optim.Adam(self.qnet_local.parameters(), self.lr)
+        self.memory = ReplayMemory(self.memory_size, self.batch_size)
         self.s_tens = torch.tensor(np.zeros((self.batch_size, 8))).float()
         self.a_tens = torch.tensor(range(self.batch_size)).unsqueeze(1).long()
         self.r_tens = torch.tensor(range(self.batch_size)).float()
@@ -79,10 +77,18 @@ class Agent:
         self.term_tens = torch.tensor(range(self.batch_size)).long()
 
     def get_action(self, observation):
-        # return the best action based on current state and NN
-        state = torch.from_numpy(observation).float()   # convert the array from env into torch.tensor in float form
+        """
+        Return the best or a random action from the environment given some observation. The probability of getting
+        the best vs. a random action is given by the value of :math:`\epsilon` (see `Epsilon-Greedy action selection`_).
+        :param observation: a vector describing the current state of the environment
+        :return:    Action [int]
+
+        .. _Epsilon-Greedy action selection: https://en.wikipedia.org/wiki/Multi-armed_bandit
+        """
+        state = torch.from_numpy(observation).float()
         with torch.no_grad():
-            action_values = self.qnet_local.forward(state)          # forward current state through the network
+            # forward current state through the network
+            action_values = self.qnet_local.forward(state)
 
         # eps-greedy action selection
         if random.random() > self.eps:
@@ -91,12 +97,12 @@ class Agent:
             return random.randint(0, 3)
 
     def evaluate(self, *args):
-        self.memory.remember(*args)     # input: s, a, r, next_s, terminated
+        self.memory.remember(*args)  # input: s, a, r, next_s, terminated
         self.t_step = self.t_step + 1
-        if (self.t_step % self.net_update == 0) and (self.memory.__len__() >= self.batch_size):
+        if (self.t_step % self.net_update_freq == 0) and (self.memory.__len__() >= self.batch_size):
             self.learn(self.memory.get_sample())
 
-    def learn(self, exp):
+    def learn(self, exp: namedtuple):
         # unpack memories into a tensor/vector with states, actions, or rewards
         # attach an argument of named tuple from each memory
         for i in range(len(exp)):
@@ -108,37 +114,45 @@ class Agent:
 
         # Bellman equation. Calculating q_target and and current q_value
         q_target_next = self.qnet_target(self.s_next_tens)  # get q_values of next states
-        q_target = self.r_tens + self.gamma * torch.max(q_target_next, dim=1)[0]*(1-self.term_tens)       # q_target
-        q_expected = self.qnet_local(self.s_tens).gather(1, self.a_tens).squeeze()                        # current q
+        q_target = self.r_tens + self.gamma * torch.max(q_target_next, dim=1)[0] * (1 - self.term_tens)  # q_target
+        q_expected = self.qnet_local(self.s_tens).gather(1, self.a_tens).squeeze()  # current q
 
-        # optimize the model with backpropagation and no tracing of tensor history
-        self.loss = F.mse_loss(q_expected, q_target)    # calculate mean squared loss between expected and target q_values
-        self.loss.backward()        # backpropagation and recalculating the strength of neuron connections in NN
+        # loss calculation and backpropagation
+        self.loss = F.mse_loss(q_expected, q_target)
+        self.loss.backward()
         self.optimizer.step()
-        self.optimizer.zero_grad()  # zeroing the gradients of the parameters in optimizer
+        self.optimizer.zero_grad()
 
         # update network parameters
         for target_param, local_param in zip(self.qnet_target.parameters(), self.qnet_local.parameters()):
-            target_param.data.copy_(self.tau*local_param.data + (1.-self.tau)*target_param.data)
+            target_param.data.copy_(self.tau * local_param.data + (1. - self.tau) * target_param.data)
 
     def get_new_epsilon(self, current_episode):
         """
-        Calculates the new :math:`\epsilon` value for each successive :code:`episode`.
-        :param current_episode: current training episode
-        :return:
+        Calculates the new :math:`\epsilon` value for each successive :code:`episode`. This function is equivalent to
+        a learning rate scheduler.
+
+        Args:
+            current_episode: current training episode
         """
         slope = (self.eps_end - self.eps_start) / self.eps_term
         eps = slope * current_episode + self.eps_start
         self.eps = max(self.eps_end, eps)
 
-    def train(self, hparams, environment:gym.Env, episodes: int = 1500, play_time: int = 1000):
+    def train(self, hparams: dict, environment: gym.Env, episodes: int = 1500, play_time: int = 1000):
         '''
-            Initializes the agents' training loop.
-            :param hparams:     [dict] containing hyperparameters
-            :param episodes:    [int] maximum number of training episodes
-            :param play_time:   [int] maximum number of actions per episode
-            :return: scores, loss, last_episode
-            '''
+        Initializes the agents' training loop.
+
+        Args:
+            hparams:     containing hyperparameters
+            environment: initialized gym(nasium) game environment
+            episodes:    maximum number of training episodes
+            play_time:   maximum number of actions per episode
+
+        Return:
+            list: scores, list: loss, int: last_episode
+        '''
+
         # print statement returns currently used variables
         print('| Variables during this run |')
         print(f'\tEpisodes: {episodes}')
@@ -170,8 +184,9 @@ class Agent:
             last_loss.append(int(self.loss))
 
             if episode % 50 == 0:
-                print(f'Running episode {episode}. Currently averaged score: {np.mean(last_scores)}')
-                print(f'Loss average: {np.mean(last_loss)}')
+                print(f'Episode #{episode}:'
+                      f'\n\tAverage score: {np.mean(last_scores)}'
+                      f'\n\tAverage loss: {np.mean(last_loss)}')
                 if self.eps > self.eps_end:
                     print(f'Epsilon: {self.eps}')
 

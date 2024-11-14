@@ -2,9 +2,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as tfunc
-import gym
-env = gym.make("LunarLander-v2")
+# import gym
+# env = gym.make("LunarLander-v2")
 from collections import deque, namedtuple
+
+from torch.nn import Module
 
 ### This file is for testing/learning pytorch and gym functions and how to apply them correctly
 
@@ -48,12 +50,12 @@ from collections import deque, namedtuple
 ### handling of PyTroch NN
 N1 = nn.Linear(8, 16)
 N2 = nn.Linear(16,4)
-input = torch.from_numpy( gym.make('LunarLander-v2').reset()[0] )
-print('State from reset environment:\n', input)
-output = N1(input)
-print('\nState in between the NN:\n', output)
-output = N2(output)
-print('\nOutput of the NN:\n', output)
+# input = torch.from_numpy( gym.make('LunarLander-v2').reset()[0] )
+# print('State from reset environment:\n', input)
+# output = N1(input)
+# print('\nState in between the NN:\n', output)
+# output = N2(output)
+# print('\nOutput of the NN:\n', output)
 
 ### torch.from_numpy() - convert a numpy array into a torch.tensor()
 
@@ -107,20 +109,20 @@ print('\nOutput of the NN:\n', output)
 # print( torch.max(TT, dim=1)[0] )
 
 ##### Gym
-import gym
-env = gym.make("LunarLander-v2")
+# import gym
+# env = gym.make("LunarLander-v2")
 
 # observation, info = env.reset(seed=0)
 # print(observation, "\n", info)
 
-for runs in range(3):
-    env.reset()
-    for i in range(1000):
-        observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
-        # print("Obs: %s\nr = %s\nTerm: %s\nTrunc: %s\nInfo: %s"%(observation,reward,terminated,truncated,info))
-
-        if terminated:
-            break
+# for runs in range(3):
+#     env.reset()
+#     for i in range(1000):
+#         observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
+#         # print("Obs: %s\nr = %s\nTerm: %s\nTrunc: %s\nInfo: %s"%(observation,reward,terminated,truncated,info))
+#
+#         if terminated:
+#             break
 
 ### multiplying tensors
 # T1 = torch.tensor(np.eye(5))
@@ -133,3 +135,15 @@ for runs in range(3):
 # print(1 - T2)
 # T3 = T1 * T2
 # print(T3.size(), T3)
+
+class Params:
+    heads: int = 5
+    hands: int = 2
+
+class Human:
+    def __init__(self, hparams):
+        self.hparams = hparams
+        self.brains: int = 1
+
+human = Human(Params)
+print(human.hparams.hands)
