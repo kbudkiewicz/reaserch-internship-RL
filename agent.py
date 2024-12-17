@@ -1,38 +1,15 @@
 import random
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import gym
+from configs import AgentConfig
 from collections import deque, namedtuple
+from networks import FeedForwardNetwork
 
 # defining memory instance
 memory = namedtuple('Memory', ('s', 'a', 'r', 'next_s', 'term'))
-
-
-class FeedForwardNetwork(nn.Module):
-    def __init__(self, *dims,
-                 activation: nn.Module = nn.ReLU(),
-                 regularizer: nn.Module = nn.Dropout(p=0.1)):
-        super().__init__()
-        self.dims = dims
-        self.module_list = nn.ModuleList()
-        self.activation = activation
-        self.regularizer = regularizer
-
-        for idx in range(len(self.dims) - 2):
-            self.module_list.append(nn.Linear(self.dims[idx], self.dims[idx + 1]))
-            self.module_list.append(self.activation)
-            self.module_list.append(self.regularizer)
-        self.module_list.append(nn.Linear(dims[-2], dims[-1]))  # last layer without activation
-        self.module_list.append(self.regularizer)
-
-        self.net = nn.Sequential(*self.module_list)
-
-    def forward(self, state):
-        return self.net(state)
-
 
 class ReplayMemory(object):
     def __init__(self, memory_size: int, batch_size: int):
@@ -49,23 +26,10 @@ class ReplayMemory(object):
         return len(self.memory)
 
 
-class Agent:
-    def __init__(self, hparams: dict):
-        self.config = None
-        self.state_size = 8
-        self.action_size = 4
-        self.memory_size = hparams['memory_size']
-        self.batch_size = hparams['batch_size']
-        self.tau = hparams['tau']
-        self.gamma = hparams['gamma']
-        self.eps = hparams['eps_start']
-        self.eps_start = hparams['eps_start']
-        self.eps_end = hparams['eps_end']
-        self.eps_term = hparams['eps_term']
-        self.lr = hparams['lr']
-        self.loss = 0
-        self.t_step = 0
-        self.net_update_freq = hparams['net_update']
+class Agent(AgentConfig):
+    def __init__(self):
+        super().__init__()
+        self.eps = self.eps_start
         self.qnet_local = FeedForwardNetwork(8,64,64,4)
         self.qnet_target = FeedForwardNetwork(8,64,64,4).eval()
         self.optimizer = optim.Adam(self.qnet_local.parameters(), self.lr)
@@ -76,7 +40,7 @@ class Agent:
         self.s_next_tens = torch.tensor(np.zeros((self.batch_size, 8))).float()
         self.term_tens = torch.tensor(range(self.batch_size)).long()
 
-    def get_action(self, observation):
+    def get_action(self, observation: torch.Tensor):
         """
         Return the best or a random action from the environment given some observation. The probability of getting
         the best vs. a random action is given by the value of :math:`\epsilon` (see `Epsilon-Greedy action selection`_).
@@ -85,24 +49,22 @@ class Agent:
 
         .. _Epsilon-Greedy action selection: https://en.wikipedia.org/wiki/Multi-armed_bandit
         """
-        state = torch.from_numpy(observation).float()
-        with torch.no_grad():
-            # forward current state through the network
-            action_values = self.qnet_local.forward(state)
 
-        # eps-greedy action selection
         if random.random() > self.eps:
+            state = torch.from_numpy(observation).float()
+            with torch.no_grad():
+                action_values = self.qnet_local.forward(state)
             return np.argmax(action_values.detach().numpy())
         else:
             return random.randint(0, 3)
 
-    def evaluate(self, *args):
+    def memorize(self, *args):
         self.memory.remember(*args)  # input: s, a, r, next_s, terminated
         self.t_step = self.t_step + 1
         if (self.t_step % self.net_update_freq == 0) and (self.memory.__len__() >= self.batch_size):
-            self.learn(self.memory.get_sample())
+            self.update_net(self.memory.get_sample())
 
-    def learn(self, exp: namedtuple):
+    def update_net(self, exp: namedtuple):
         # unpack memories into a tensor/vector with states, actions, or rewards
         # attach an argument of named tuple from each memory
         for i in range(len(exp)):
@@ -127,7 +89,7 @@ class Agent:
         for target_param, local_param in zip(self.qnet_target.parameters(), self.qnet_local.parameters()):
             target_param.data.copy_(self.tau * local_param.data + (1. - self.tau) * target_param.data)
 
-    def get_new_epsilon(self, current_episode):
+    def update_epsilon(self, current_episode):
         """
         Calculates the new :math:`\epsilon` value for each successive :code:`episode`. This function is equivalent to
         a learning rate scheduler.
@@ -136,10 +98,10 @@ class Agent:
             current_episode: current training episode
         """
         slope = (self.eps_end - self.eps_start) / self.eps_term
-        eps = slope * current_episode + self.eps_start
-        self.eps = max(self.eps_end, eps)
+        new_eps = slope * current_episode + self.eps_start
+        self.eps = max(self.eps_end, new_eps)
 
-    def train(self, hparams: dict, environment: gym.Env, episodes: int = 1500, play_time: int = 1000):
+    def train(self, environment: gym.Env, episodes: int = 1500, play_time: int = 1000):
         '''
         Initializes the agents' training loop.
 
@@ -157,26 +119,27 @@ class Agent:
         print('| Variables during this run |')
         print(f'\tEpisodes: {episodes}')
         print(f'\tPlay time: {play_time}')
-        for k, v in hparams.items():
-            print(f'\t{k.upper()}: {v}')
+        # TODO: redo this section
+        # for k, v in self.config.__dict__:
+        #     print(f'\t{k.upper()}: {v}')
 
         scores, loss = [], []
         last_scores, last_loss = deque(maxlen=100), deque(maxlen=100)
 
         for episode in range(episodes):
-            state = environment.reset()[0]
+            state, *_ = environment.reset()
             score = 0
             for time in range(play_time):
                 # act on primary state and get best action from NN
                 action = self.get_action(state)
                 # take a step in the environment according to the chosen action
                 next_state, reward, terminated, truncated, _ = environment.step(action)
-                self.evaluate(state, action, reward, next_state, terminated)
+                self.memorize(state, action, reward, next_state, terminated)
                 state = next_state
                 score += reward
                 if terminated or truncated:
                     break
-                self.get_new_epsilon(current_episode=episode)
+                self.update_epsilon(current_episode=episode)
 
             scores.append(score)
             loss.append(int(self.loss))
@@ -185,16 +148,20 @@ class Agent:
 
             if episode % 50 == 0:
                 print(f'Episode #{episode}:'
-                      f'\n\tAverage score: {np.mean(last_scores)}'
-                      f'\n\tAverage loss: {np.mean(last_loss)}')
+                      f'\n\tAverage score: {np.mean(last_scores):.2f}'
+                      f'\n\tAverage loss: {np.mean(last_loss):.2f}')
                 if self.eps > self.eps_end:
-                    print(f'Epsilon: {self.eps}')
+                    print(f'\tEpsilon: {self.eps:.2f}')
 
             if np.mean(last_scores) >= 200.0:
                 print(f'Environment solved! Training done in {episode} episodes.')
-                print(f'Average loss: {np.mean(last_loss)}')
+                print(f'\n\tAverage loss: {np.mean(last_loss):.2f}')
                 torch.save(self.qnet_local.state_dict(), f'./diagnostics/state_dicts/state_dict.pt')
                 environment.close()
                 break
 
         return scores, loss, episode
+
+    #TODO: add a evaluation mode
+    def eval(self):
+        pass
